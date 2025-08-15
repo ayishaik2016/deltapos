@@ -1,0 +1,60 @@
+<?php
+
+return [
+    'info'                          => 'Account Info',
+    'accounting'                    => 'Accounting',
+    'account'                       => 'Account',
+    'accounts'                      => 'Accounts',
+    'list'                          => 'Account List',
+    'create'                        => 'Create Account',
+    'add_account'                   => 'Add Account',
+    'details'                       => 'Account Details',
+    'update_account'                => 'Update Account',
+    'balance_sheet'                 => 'Balance Sheet',
+    'balance_sheet_report'          => 'Balance Sheet Report',
+    'trial_balance'                 => 'Trial Balance',
+    'credit'                        => 'Credit',
+    'debit'                         => 'Debit',
+    'failed_to_create_or_update_account' => 'Failed to create/update account!',
+    'profit_and_loss'               => 'Profit and Loss',
+    'gross_profit'                  => 'Gross Profit',
+    'net_profit'                    => 'Net Profit',
+    'indirect_income_without_tax'   => 'Indirect Income without Tax',
+    'expense_without_tax'           => 'Expense without Tax',
+    'indirect_expense_without_tax'  => 'Indirect Expense without Tax',
+    'ledger'                        => 'Ledger',
+
+    'group' => [
+                    'group'         => 'Account Group',
+                    'create'        => 'Create Group',
+                    'list'          => 'Group List',
+                    'details'       => 'Account Group Details',
+                    'under'         => 'Under Group',
+                    'group_list'    => 'Account Group List',
+                    'parent'        => 'Parent Group',
+                    'update'        => 'Update Group',
+                ],
+    //1.4.3
+    'net_summary'                    => 'Net Summary',
+    //2.4.1
+    'item_wise'                   => 'Item Wise',
+    'invoice_wise'                   => 'Invoice Wise',
+    'summary'                       => 'Summary',
+    'summary_and_gross_profit' => 'Summary & Gross Profit',
+    'itew_wise_profit_and_loss' => 'Item Wise Profit and Loss',
+    'brand_wise_profit_and_loss' => 'Brand Wise Profit and Loss',
+    'invoice_wise_profit_and_loss' => 'Invoice Wise Profit and Loss',
+    'profit_by_items'                => 'Profit by Items',
+    'profit_by_brands'               => 'Profit by Brands',
+    'profit_by_invoice'             => 'Profit by Invoice',
+    'profit_summary'             => 'Profit Summary',
+    'profit_by_categories'           => 'Profit by Categories',
+    'category_wise_profit_and_loss' => 'Category Wise Profit and Loss',
+    'profit_by_customers'           => 'Profit by Customers',
+    'customer_wise_profit_and_loss' => 'Customer Wise Profit and Loss',
+    'use_only_selected_date_range' => 'Use Sale Average from the selected date range only',
+    'use_only_selected_date_range_tooltip' => 'If unchecked, average sale is calculated from all invoices.',
+
+
+
+];
