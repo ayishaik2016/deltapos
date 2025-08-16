@@ -1,4 +1,0 @@
-Table:
-1. Customers
-2. Tax
-3. products
