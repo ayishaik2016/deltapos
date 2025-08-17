@@ -1,6 +1,13 @@
 @extends('layouts.app-pos')
 @section('title', __('sale.pos'))
 
+@php
+    $itemTotalUpdatePermission = false;
+    if(auth()->user()->can('sale.invoice.total.update')) {
+        $itemTotalUpdatePermission = true;
+    }
+@endphp
+
 @section('css')
 <link rel="stylesheet" href="{{ versionedAsset('custom/css/pos.css') }}"/>
 @endsection
@@ -224,12 +231,14 @@
                                               <tr>
                                                  <td class="w-50">
                                                     <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="round_off_checkbox">
+                                                        @if($itemTotalUpdatePermission)
+                                                            <input class="form-check-input" type="checkbox" id="round_off_checkbox">
+                                                        @endif
                                                         <label class="form-check-label fw-bold cursor-pointer" for="round_off_checkbox">{{ __('app.round_off') }}</label>
                                                     </div>
                                                 </td>
                                                  <td class="w-50">
-                                                    <x-input type="text" additionalClasses="text-end cu_numeric round_off " name="round_off" :required="false" placeholder="Round-Off" value="0"/>
+                                                    <x-input type="text" additionalClasses="text-end cu_numeric round_off" name="round_off" :required="false" placeholder="Round-Off" value="0"  :readonly="!$itemTotalUpdatePermission"/>
                                                 </td>
                                               </tr>
                                               <tr>
@@ -285,6 +294,14 @@
         @endsection
 
 @section('js')
+
+<script>
+    let itemUpdatePermission = false;
+    @if(auth()->user()->can('sale.invoice.item.update'))
+        itemUpdatePermission = true;
+    @endif
+</script>
+
 <script src="{{ versionedAsset('custom/js/autocomplete-item.js') }}"></script>
 <script src="{{ versionedAsset('custom/js/sale/pos.js') }}"></script>
 

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Models\Tax;
 use App\Models\User;
 use App\Models\Unit;
+use App\Models\Party\CustomerItem;
 use App\Models\Items\ItemCategory;
 use App\Models\Items\ItemGeneralQuantity;
 
@@ -173,6 +174,17 @@ class Item extends Model
     public function itemGeneralQuantities()
     {
         return $this->hasMany(ItemGeneralQuantity::class);
+    }
+
+    public function customerItems()
+    {
+        return $this->hasOne(CustomerItem::class, 'item_id');
+    }
+
+    public function customerItemFor($partyId)
+    {
+        return $this->hasOne(CustomerItem::class, 'item_id')
+                    ->where('party_id', $partyId);
     }
 
 }

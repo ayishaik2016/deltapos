@@ -194,4 +194,6 @@ return [
         'hsn_summary_report' => 'HSN Summary Report',
         'hsn_summary' => 'HSN Summary',
 
+        'customer_item_price' => 'Customer Item Price',
+
 ];

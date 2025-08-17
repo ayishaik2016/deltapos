@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AssignedJobController;
 use App\Http\Controllers\Party\PartyController;
+use App\Http\Controllers\Party\PartyItemController;
 use App\Http\Controllers\Party\PartyTransactionController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ScheduleController;
@@ -310,6 +311,14 @@ Route::middleware('auth')->group(function () {
          * Ajax selection box search
          * */
         Route::get('/ajax/get-list', [PartyController::class, 'getAjaxSearchBarList']);
+
+        //CUstomer Item list
+        Route::get('/{partyType}/items/{id}', [PartyItemController::class, 'list'])
+                    ->middleware('check.party.permission')
+                    ->name('party.items.list');
+        Route::get('/items-list', [PartyItemController::class, 'datatableList']); //Datatable List
+
+        Route::post('/update-price', [PartyItemController::class, 'updateItemPrice']);
     });
 
     /**

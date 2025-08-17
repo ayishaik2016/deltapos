@@ -423,7 +423,12 @@
                                                         <input class="form-check-input sale_invoice_group_p" type="checkbox" name="permission[sale.invoice.can.view.other.users.sale.invoices]" id="sale.invoice.can.view.other.users.sale.invoices">
                                                         <label for="sale.invoice.can.view.other.users.sale.invoices">{{ __('sale.allow_user_to_view_all_sale_invoices') }}</label>
                                                         <br>
-
+                                                        <input class="form-check-input sale_invoice_group_p" type="checkbox" name="permission[sale.invoice.item.update]" id="sale.invoice.item.update">
+                                                        <label for="sale.invoice.item.update">{{ __('sale.allow_user_to_update_the_selected_item') }}</label>
+                                                        <br>
+                                                        <input class="form-check-input sale_invoice_group_p" type="checkbox" name="permission[sale.invoice.total.update]" id="sale.invoice.total.update">
+                                                        <label for="sale.invoice.total.update">{{ __('sale.allow_user_to_update_the_item_total') }}</label>
+                                                        <br>
                                                     </td>
                                                 </tr>
                                                 <tr>

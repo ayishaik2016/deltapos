@@ -309,6 +309,8 @@ return [
     'invoice_from_date' => 'Invoice From Date',
     'invoice_to_date' => 'Invoice To Date',
     'receive' => 'Receive',
+    
+    'items' => 'Items',
 
 
 

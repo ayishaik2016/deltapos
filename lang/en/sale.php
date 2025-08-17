@@ -113,4 +113,7 @@ return [
     'invoice_no'                => 'Invoice Number',
     'sale_amount'              => 'Sale Amount',
 
+    'allow_user_to_update_the_selected_item' => 'Allow User to Update the Selected Item',
+    'allow_user_to_update_the_item_total' => 'Allow User to Update the Selected Item Total'
+
 ];

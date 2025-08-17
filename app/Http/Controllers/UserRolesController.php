@@ -26,7 +26,7 @@ class UserRolesController extends Controller
     public function createRole() : View {
 
         $roleAndPermission = $this->getGroupPermissionsList();
-
+        
         return view('roles-and-permissions.role.create', compact('roleAndPermission'));
     }
 

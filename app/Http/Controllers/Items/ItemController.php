@@ -873,6 +873,7 @@ class ItemController extends Controller
         $categoryId = request('item_category_id');
         $brandId = request('item_brand_id');
         $warehouseId = request('warehouse_id');
+        $partyId = request('party_id');
         $page = request('page', 1); // Get the page from the request, default to 1
 
         $showWholesalePrice = Party::select('is_wholesale_customer')
@@ -898,7 +899,7 @@ class ItemController extends Controller
                         })
                         ->paginate(15, ['*'], 'page', $page); // Use pagination for infinite scroll
 
-        $response = $this->returnRequiredFormatData($itemMaster, $showWholesalePrice);
+        $response = $this->returnRequiredFormatData($itemMaster, $showWholesalePrice, $partyId);
         return response()->json($response);
     }
     function returnRequiredFormatData($itemMaster, $showWholesalePrice = false){
@@ -906,6 +907,8 @@ class ItemController extends Controller
         $isPermiteToViewPurchasePrice = (bool) auth()->user()->can('general.allow.to.view.item.purchase.price');
 
         $warehouseId = request('warehouse_id') ?? null;//If no warehouse is selected then null, Barcode Generation Page no need to show warehouse stock
+
+        $partyId = request('party_id') ?? null;
 
         $warehouseName = $warehouseId ? CacheService::get('warehouse')->where('id', $warehouseId)->first()?->name ?? '' : '';
 
@@ -917,7 +920,7 @@ class ItemController extends Controller
 
         $itemMaster->load('itemGeneralQuantities.warehouse');
 
-        return $itemMaster->map(function ($item) use($taxList, $unitList, $warehouseId, $showWholesalePrice, $isPermiteToViewPurchasePrice, $warehouseName) {
+        return $itemMaster->map(function ($item) use($taxList, $unitList, $warehouseId, $partyId, $showWholesalePrice, $isPermiteToViewPurchasePrice, $warehouseName) {
 
             if ($warehouseId) {
                 $warehouseStockRecord = $item->itemGeneralQuantities->firstWhere('warehouse_id', $warehouseId);
@@ -933,6 +936,13 @@ class ItemController extends Controller
              * request_from is used in stock adjustment form
              */
             $isRquiredToShowStockInUnit = request('request_from') == 'stock_adjustment' ? true : false;
+
+            if($partyId) {
+                $customerItemDetail = $item->customerItemFor($partyId)->first();
+                if ($customerItemDetail) {
+                    $item->sale_price = $customerItemDetail->customer_item_price;
+                }
+            }
 
             $itemsArray = [
                     'id'                        => $item->id,

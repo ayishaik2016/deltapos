@@ -301,6 +301,7 @@ class PartyController extends Controller
                             $deleteUrl = route('party.delete', ['id' => $id, 'partyType' => $partyType]);
                             $transactionUrl = route('party.transaction.list', ['id' => $id, 'partyType' => $partyType]);
                             $paymentUrl = route('party.payment.create', ['id' => $id, 'partyType' => $partyType]);
+                            $itemUrl = route('party.items.list', ['id' => $id, 'partyType' => $partyType]);
 
                             $actionBtn = '<div class="dropdown ms-auto">
                             <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded font-22 text-option"></i>
@@ -321,6 +322,9 @@ class PartyController extends Controller
                                 </li>
                                 <li>
                                     <button type="button" class="dropdown-item text-danger deleteRequest" data-delete-id='.$id.'><i class="bx bx-trash"></i> '.__('app.delete').'</button>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="' . $itemUrl . '"><i class="bx bx-package"></i> '.__('app.items').'</a>
                                 </li>
                             </ul>
                         </div>';
