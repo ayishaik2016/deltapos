@@ -113,7 +113,7 @@ return [
     'invoice_no'                => 'Invoice Number',
     'sale_amount'              => 'Sale Amount',
 
-    'allow_user_to_update_the_selected_item' => 'Allow User to Update the Selected Item',
-    'allow_user_to_update_the_item_total' => 'Allow User to Update the Selected Item Total'
-
+    'allow_user_to_update_the_selected_item' => 'Allow User to Update Item Price',
+    'allow_user_to_update_the_item_total' => 'Allow User to Update Total Price',
+    'allow_user_to_view_additional_fields' => 'Allow User to View Additional Fields',
 ];

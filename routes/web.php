@@ -78,9 +78,14 @@ use App\Http\Controllers\Reports\HsnReportController;
 use App\Http\Controllers\Reports\StockAdjustmentReportController;
 use App\Http\Controllers\Sale\QuotationController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\ItemDispatchController;
 use App\Http\Controllers\Transaction\CashController;
 use App\Http\Controllers\Transaction\ChequeController;
 use App\Http\Controllers\Transaction\BankController;
+
+use App\Http\Controllers\Vehicle\VehicleController;
+// use App\Http\Controllers\Vehicle\VehicleTypeController;
+
 use App\Models\Sale\SaleOrder;
 
 /*
@@ -525,6 +530,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/pdf/{id}', [StockAdjustmentController::class, 'generatePdf'])
                 ->middleware('can:stock_adjustment.view')
                 ->name('stock_adjustment.pdf');
+    });
+
+
+    /**
+     * Item Dispatch Form
+     * */
+    Route::group(['prefix' => 'item-dispatch'], function () {
+        Route::get('/create', [ItemDispatchController::class, 'create'])
+                ->middleware('can:item_dispatch.create')
+                ->name('item_dispatch.create');//Create
+        Route::get('/list', [ItemDispatchController::class, 'list'])
+                ->middleware('can:item_dispatch.view')
+                ->name('item_dispatch.list'); //List
+        Route::get('/datatable-list', [ItemDispatchController::class, 'datatableList'])->name('item_dispatch.datatable.list'); //Datatable List
+        Route::post('/store', [ItemDispatchController::class, 'store'])->name('item_dispatch.store');//Save operation
+       
+        Route::get('/print/{id}', [ItemDispatchController::class, 'print'])
+                ->middleware('can:item_dispatch.view')
+                ->name('item_dispatch.print');
+
+        Route::get('/pdf/{id}', [ItemDispatchController::class, 'generatePdf'])
+                ->middleware('can:item_dispatch.view')
+                ->name('item_dispatch.pdf');
     });
 
     /**
@@ -1881,6 +1909,50 @@ Route::middleware('auth')->group(function () {
                 ->name('carrier.delete');//delete operation
     });//Carriers
 
+    /**
+     * Vehicle
+     * */
+    Route::group(['prefix' => 'vehicle'], function () {
+        //Vehicle Type
+        /*Route::get('/vehicleType/create', [VehicleTypeController::class, 'create'])
+                ->middleware('can:vehicle.type.create')
+                ->name('vehicleType.create'); //Create
+        Route::get('/edit/{id}', [VehicleTypeController::class, 'edit'])
+                ->middleware('can:vehicle.type.edit')
+                ->name('vehicleType.edit'); //Edit
+        Route::put('/update', [VehicleTypeController::class, 'update'])
+                ->name('vehicleType.update'); //Update
+        Route::get('/list', [VehicleTypeController::class, 'list'])
+                ->middleware('can:vehicle.type.view')
+                ->name('vehicleType.list'); //List
+        Route::get('/datatable-list', [VehicleTypeController::class, 'datatableList'])
+                ->name('vehicleType.datatable.list'); //Datatable List
+        Route::post('/store', [VehicleTypeController::class, 'store'])
+                ->name('vehicleType.store');//Save operation
+        Route::post('/delete/', [VehicleTypeController::class, 'delete'])
+                ->middleware('can:vehicle.type.delete')
+                ->name('vehicleType.delete');//delete operation*/
+
+        //Vehicle
+        Route::get('/vehicle/create', [VehicleController::class, 'create'])
+                ->middleware('can:vehicle.create')
+                ->name('vehicle.create'); //Create
+        Route::get('/edit/{id}', [VehicleController::class, 'edit'])
+                ->middleware('can:vehicle.edit')
+                ->name('vehicle.edit'); //Edit
+        Route::put('/update', [VehicleController::class, 'update'])
+                ->name('vehicle.update'); //Update
+        Route::get('/list', [VehicleController::class, 'list'])
+                ->middleware('can:vehicle.view')
+                ->name('vehicle.list'); //List
+        Route::get('/datatable-list', [VehicleController::class, 'datatableList'])
+                ->name('vehicle.datatable.list'); //Datatable List
+        Route::post('/store', [VehicleController::class, 'store'])
+                ->name('vehicle.store');//Save operation
+        Route::post('/delete/', [VehicleController::class, 'delete'])
+                ->middleware('can:vehicle.delete')
+                ->name('vehicle.delete');//delete operation
+    });
 });
 
 

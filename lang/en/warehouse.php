@@ -37,5 +37,6 @@ return [
     'transfer'                  => 'Transfer',
     'adjustment'                => 'Adjustment',
     'adjustment_type'           => 'Adjustment Type',
+    'item_dispatch'             => 'Item Dispatch Form'
 
 ];
