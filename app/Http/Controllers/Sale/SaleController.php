@@ -34,6 +34,7 @@ use App\Services\Communication\Sms\SaleSmsNotificationService;
 use App\Enums\ItemTransactionUniqueCode;
 use App\Models\Sale\Quotation;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Currency;
 
 use Mpdf\Mpdf;
 
@@ -378,11 +379,14 @@ class SaleController extends Controller
         //Batch Tracking Row count for invoice columns setting
         $batchTrackingRowCount = (new GeneralDataService())->getBatchTranckingRowCount();
 
+        //Get Default currency
+        $currencyDetail = Currency::where('is_company_currency', 1)->first();
+
         $invoiceData = [
             'name' => __('sale.invoice'),
         ];
 
-        return view('print.sale.pos.print', compact('isPdf', 'invoiceData', 'sale','selectedPaymentTypesArray','batchTrackingRowCount'));
+        return view('print.sale.pos.print', compact('isPdf', 'invoiceData', 'sale','selectedPaymentTypesArray','batchTrackingRowCount', 'currencyDetail'));
 
     }
 
@@ -547,7 +551,7 @@ class SaleController extends Controller
 
                 // $newSale->paymentTransaction()->delete();
             }
-
+            
             $request->request->add(['modelName' => $newSale]);
 
             /**
@@ -831,26 +835,28 @@ class SaleController extends Controller
              *
              * Item Transaction Entry
              * */
+
             $transaction = $this->itemTransactionService->recordItemTransactionEntry($request->modelName, [
                 'warehouse_id'              => $request->warehouse_id[$i],
                 'transaction_date'          => $request->sale_date,
                 'item_id'                   => $request->item_id[$i],
                 'description'               => $request->description[$i],
 
-                'tracking_type'             => $itemDetails->tracking_type,
+                'tracking_type'             => $itemDetails->tracking_type ?? '',
 
                 'quantity'                  => $itemQuantity,
                 'unit_id'                   => $request->unit_id[$i],
                 'unit_price'                => $request->sale_price[$i],
                 'mrp'                       => $request->mrp[$i]??0,
 
-                'discount'                  => $request->discount[$i],
-                'discount_type'             => $request->discount_type[$i],
-                'discount_amount'           => $request->discount_amount[$i],
+                'discount'                  => $request->discount[$i] ?? 0,
+                'discount_type'             => $request->discount_type[$i] ?? '',
+                'discount_amount'           => $request->discount_amount[$i] ?? 0,
 
-                'tax_id'                    => $request->tax_id[$i],
-                'tax_type'                  => $request->tax_type[$i],
-                'tax_amount'                => $request->tax_amount[$i],
+                'tax_id'                    => $request->tax_id[$i] ?? $itemDetails->tax_id,
+                'tax_type'                  => $request->tax_type[$i] ?? $itemDetails->tax->name,
+                // 'tax_type'                  => $itemDetails->tax_type,
+                'tax_amount'                => $request->tax_amount[$i] ?? 0,
 
                 'total'                     => $request->total[$i],
 

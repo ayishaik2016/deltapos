@@ -26,6 +26,8 @@
 
     var partyId = $("#party_id");
 
+    var vehicleId = $("#vehicle_id");
+
     /**
      * Language
      * */
@@ -875,6 +877,7 @@
         initItemAutocomplete(itemSearchInputBoxId, {
             warehouse_id: currentWarehouse.val(),
             party_id: partyId.val(),
+            vehicle_id: vehicleId.val(),
             module: 'sale',
             onSelect: function(item) {
                 addRow(item); // Your existing addRow logic
@@ -1089,6 +1092,22 @@
             ajaxGetRequest(url ,paymentId, 'delete-payment');
         }
     }
+    
+    /**
+     * Custom Page Loader: Show
+     * */
+    function showSpinner() {
+        const spinnerOverlay = document.getElementById('spinner-overlay');
+        spinnerOverlay.style.display = 'flex';
+    }
+
+    /**
+     * Custom Page Loader: Hide
+     * */
+    function hideSpinner() {
+        const spinnerOverlay = document.getElementById('spinner-overlay');
+        spinnerOverlay.style.display = 'none';
+    }
 
     function ajaxGetRequest(url, id, _from) {
           $.ajax({
@@ -1103,8 +1122,9 @@
             success: function(response) {
               if(_from == 'delete-payment'){
                 handleDeleteResponse(response, id);
-              }
-              else {
+              } else if(_from == 'vehicle-item-dispatch'){
+                handleVehcileDispatchResponse(response, id);
+              } else {
                 //
               }
             },
@@ -1131,6 +1151,15 @@
 
     }
 
+    function handleVehcileDispatchResponse(response, id) {
+        if(Object.keys(response).length > 0) {
+            $('#item_dispatch').html('Item Dispatch ' + response.transaction_id);
+        } else {
+            $('#item_dispatch').html('No Item Dispatch Found');
+        }
+        
+    }
+
     /**
      * Event on
      * Customer or Party Selection
@@ -1147,6 +1176,28 @@
 
         var customerType = (selectedData.is_wholesale_customer == 1) ? 'Wholesale' : 'Retail';
         iziToast.success({title: '', layout: 3, message: `<b>${customerType} Customer Selected</b>`});
+
+    });
+
+    /**
+     * Event on
+     * Customer or Party Selection
+     * */
+    $(document).on('change', '#vehicle_id', function() {
+        var selectedData = $('#vehicle_id').select2('data')[0]; // `data()` returns an array, take the first item
+        // Access the `is_wholesale_customer` property
+        if (!selectedData) {
+            return true;
+        }
+
+        tableId.find('tbody tr').remove();
+        setBottomOfTableRecords();
+
+        var url = baseURL + '/item-dispatch/vehicle/';
+        ajaxGetRequest(url , selectedData.id, 'vehicle-item-dispatch');
+
+        // var customerType = (selectedData.is_wholesale_customer == 1) ? 'Wholesale' : 'Retail';
+        // iziToast.success({title: '', layout: 3, message: `<b>${customerType} Customer Selected</b>`});
 
     });
 

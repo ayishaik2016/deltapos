@@ -32,12 +32,16 @@
                                         <x-input type="text" name="vehicle_number" :required="true" value=""/>
                                     </div>
                                     <div class="col-md-6">
-                                        <x-label for="description" name="{{ __('app.description') }}" />
-                                        <x-textarea name="description" value=""/>
+                                        <x-label for="vehicle_type_id" name="{{ __('vehicle.vehicle_type') }}" />
+                                        <x-dropdown-vehicle-type selected="" dropdownName="vehicle_type_id" />
                                     </div>
                                     <div class="col-md-6">
                                         <x-label for="status" name="{{ __('app.status') }}" />
                                         <x-dropdown-status selected="" dropdownName='status'/>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <x-label for="description" name="{{ __('app.description') }}" />
+                                        <x-textarea name="description" value=""/>
                                     </div>
                                     <div class="col-md-12">
                                         <div class="d-md-flex d-grid align-items-center gap-3">

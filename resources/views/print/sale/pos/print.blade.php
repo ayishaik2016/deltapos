@@ -11,6 +11,10 @@
     <div class="invoice-wrapper">
         <div class="container mt-3">
             <div class="invoice-header">
+                 @php
+                    $companyLogo = url('/company/getimage/'.app('company')['colored_logo']);
+                @endphp
+                <div class="invoice-logo"><img width="100" src="{{ $companyLogo }}" alt="Logo" class="company-logo"></div>
                 <div class="invoice-title">{{ app('company')['name'] }}</div>
                 <div>
                     {{ app('company')['address'] }}
@@ -25,7 +29,7 @@
                 </div>
             </div>
 
-            <div class="text-center">--------{{ $invoiceData['name'] }}--------</div>
+            <div class="text-center"><h6>{{ $invoiceData['name'] }}</h6></div>
 
             <div class="row">
                 <div class="col-6">
@@ -134,27 +138,27 @@
                             });
 
                 @endphp
-                <div class="col-8 text-end"><strong>{{ __('app.subtotal') }}</strong></div>
+                <div class="col-8 text-end"><strong>{{ __('app.subtotal') }}({{$currencyDetail->symbol}})</strong></div>
                 <div class="col-4">{{ $formatNumber->formatWithPrecision($subtotal) }}</div>
 
-                <div class="col-8 text-end"><strong>{{ __('app.discount') }}</strong></div>
+                <div class="col-8 text-end"><strong>{{ __('app.discount') }}({{$currencyDetail->symbol}})</strong></div>
                 <div class="col-4">{{ $formatNumber->formatWithPrecision(-$discount) }}</div>
 
                 @if(app('company')['tax_type'] != 'no-tax')
-                    <div class="col-8 text-end"><strong>{{ __('tax.tax') }}</strong></div>
+                    <div class="col-8 text-end"><strong>{{ __('tax.tax') }}({{$currencyDetail->symbol}})</strong></div>
                     <div class="col-4">{{ $formatNumber->formatWithPrecision($taxAmount) }}</div>
                 @endif
 
-                <div class="col-8 text-end"><strong>{{ __('app.round_off') }}</strong></div>
+                <div class="col-8 text-end"><strong>{{ __('app.round_off') }}({{$currencyDetail->symbol}})</strong></div>
                 <div class="col-4">{{ $formatNumber->formatWithPrecision($sale->round_off) }}</div>
 
-                <div class="col-8 text-end"><strong>{{ __('app.grand_total') }}</strong></div>
+                <div class="col-8 text-end"><strong>{{ __('app.grand_total') }}({{$currencyDetail->symbol}})</strong></div>
                 <div class="col-4">{{ $formatNumber->formatWithPrecision($sale->grand_total) }}</div>
 
-                <div class="col-8 text-end"><strong>{{ __('payment.paid_amount') }}</strong></div>
+                <div class="col-8 text-end"><strong>{{ __('payment.paid_amount') }}({{$currencyDetail->symbol}})</strong></div>
                 <div class="col-4">{{ $formatNumber->formatWithPrecision($sale->paid_amount) }}</div>
 
-                <div class="col-8 text-end"><strong>{{ __('payment.balance') }}</strong></div>
+                <div class="col-8 text-end"><strong>{{ __('payment.balance') }}({{$currencyDetail->symbol}})</strong></div>
                 <div class="col-4">{{ $formatNumber->formatWithPrecision($sale->grand_total - $sale->paid_amount) }}</div>
 
 
@@ -169,7 +173,7 @@
                             });
 
                     @endphp
-                    <div class="col-8 text-end"><strong>{{ __('app.you_saved') }}</strong></div>
+                    <div class="col-8 text-end"><strong>{{ __('app.you_saved') }}({{$currencyDetail->symbol}})</strong></div>
                     <div class="col-4">{{ $formatNumber->formatWithPrecision($savedAmount) }}</div>
                 @endif
 
@@ -179,11 +183,11 @@
                         $partyTotalDueBalance = $partyTotalDue['balance'];
                     @endphp
                 <tr>
-                    <div class="col-8 text-end"><strong>{{ __('app.previous_due') }}</strong></div>
+                    <div class="col-8 text-end"><strong>{{ __('app.previous_due') }}({{$currencyDetail->symbol}})</strong></div>
                     <div class="col-4">{{ $formatNumber->formatWithPrecision($partyTotalDueBalance - ($sale->grand_total - $sale->paid_amount) ) }}</div>
                 </tr>
                 <tr>
-                    <div class="col-8 text-end"><strong>{{ __('app.total_due_balance') . ($partyTotalDue['status'] == 'you_pay' ? '(You Pay)' : '(Receive)') }}</strong></div>
+                    <div class="col-8 text-end"><strong>{{ __('app.total_due_balance') . ($partyTotalDue['status'] == 'you_pay' ? '(You Pay)' : '(Receive)') }}({{$currencyDetail->symbol}})</strong></div>
                     <div class="col-4">{{ $formatNumber->formatWithPrecision($partyTotalDueBalance) }}</div>
                 </tr>
                 @endif
@@ -205,9 +209,9 @@
                     {{-- GST --}}
                      <tr>
                         <th rowspan="2">{{ __('item.hsn') }}</th>
-                        <th rowspan="2">{{ __('tax.taxable_amount') }}</th>
+                        <th rowspan="2">{{ __('tax.taxable_amount') }}({{$currencyDetail->symbol}})</th>
                         <th colspan="2" class="text-center">{{ __('tax.gst') }}</th>
-                        <th rowspan="2">{{ __('tax.tax_amount') }}</th>
+                        <th rowspan="2">{{ __('tax.tax_amount') }}({{$currencyDetail->symbol}})</th>
                     </tr>
                     <tr>
                         <th>{{ __('tax.rate') }}%</th>
@@ -325,7 +329,7 @@
         @endif
 
             <div class="footer">
-                @include('print.common.terms-conditions')
+                <!-- @include('print.common.terms-conditions') -->
             </div>
 
             <!-- <div class="qr-code">

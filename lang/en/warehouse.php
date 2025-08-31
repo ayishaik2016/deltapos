@@ -37,6 +37,12 @@ return [
     'transfer'                  => 'Transfer',
     'adjustment'                => 'Adjustment',
     'adjustment_type'           => 'Adjustment Type',
-    'item_dispatch'             => 'Item Dispatch Form'
-
+    'item_dispatch'             => 'Item Dispatch Form',
+    'item_dispatch_list'        => 'Item Dispatch Form List',
+    'new_form'                  => 'New Dispatch Form',
+    'transaction_id'            => 'Transaction Id',
+    'item_dispatch_details'     => 'Item Dispatch Form',
+    'total_no_of_quantity'      => 'Total No. Of Quantity',
+    'total_no_of_sold_quantity' => 'Total No. Of Sold Quantity',
+    'total_no_of_remaining_quantity' => 'Total No. Of Remaining Quantity',
 ];

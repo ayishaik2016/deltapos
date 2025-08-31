@@ -20,6 +20,8 @@
 
     var partyId = $("#party_id");
 
+    var vehicleId = $("#vehicle_id");
+
     var searchedItemPrice = 0;
 
     var buttonId = $("#add_row");

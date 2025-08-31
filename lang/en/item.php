@@ -196,4 +196,10 @@ return [
 
         'customer_item_price' => 'Customer Item Price',
 
+        'sold_quantity' => 'Sold Qty',
+        'remaining_quantity' => 'Remaining Qty',
+        'vehicle_already_exists' => 'Vehicle Already Exists',
+        'driver_already_exists' => 'Driver Already Exists',
+        'salesman_already_exists' => 'Salesman Already Exists',
+
 ];

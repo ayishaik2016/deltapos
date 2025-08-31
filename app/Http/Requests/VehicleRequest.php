@@ -33,6 +33,7 @@ class VehicleRequest extends FormRequest
         $rulesArray = [
             'name' => ['required', 'string'],
             'description' => ['nullable', 'string'],
+            'vehicle_type_id' => ['required'],
             'status' => ['required'],
         ];
 
@@ -52,6 +53,7 @@ class VehicleRequest extends FormRequest
             'name.required' => 'A Name should not be empty',
             'vehicle_number.required' => 'A Vehicle Number should not be empty',
             'status.required' => 'Please Select Status',
+            'vehicle_type_id.required' => 'Vehcile type should not be empty',
         ];
 
         if ($this->isMethod('PUT')) {

@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\View;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Models\Prefix;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Items\Item;
 use App\Traits\FormatNumber;
@@ -19,7 +20,7 @@ use App\Enums\App;
 use App\Services\PaymentTypeService;
 use App\Services\GeneralDataService;
 use App\Services\PaymentTransactionService;
-use App\Http\Requests\StockAdjustmentRequest;
+use App\Http\Requests\ItemDispatchRequest;
 use App\Services\AccountTransactionService;
 use App\Services\ItemTransactionService;
 
@@ -27,6 +28,8 @@ use App\Services\CacheService;
 use App\Services\ItemService;
 use App\Enums\ItemTransactionUniqueCode;
 use App\Models\StockAdjustment;
+use App\Models\ItemDispatch;
+use App\Models\ItemDispatchTransaction;
 use App\Services\Communication\Email\PurchaseBillEmailNotificationService;
 use App\Services\Communication\Sms\PurchaseBillSmsNotificationService;
 
@@ -77,17 +80,17 @@ class ItemDispatchController extends Controller
         $prefix = Prefix::findOrNew($this->companyId);
         $lastCountId = $this->getLastCountId();
         $data = [
-            'prefix_code' => $prefix->stock_adjustment,
+            'prefix_code' => $prefix->item_dispatch,
             'count_id' => ($lastCountId+1),
         ];
-        return view('stock-adjustment.create',compact('data'));
+        return view('item-dispatch.create',compact('data'));
     }
 
     /**
      * Get last count ID
      * */
     public function getLastCountId(){
-        return StockAdjustment::select('count_id')->orderBy('id', 'desc')->first()?->count_id ?? 0;
+        return ItemDispatch::select('count_id')->orderBy('id', 'desc')->first()?->count_id ?? 0;
     }
 
     /**
@@ -96,7 +99,7 @@ class ItemDispatchController extends Controller
      * @return \Illuminate\View\View
      */
     public function list() : View {
-        return view('stock-adjustment.list');
+        return view('item-dispatch.list');
     }
 
      /**
@@ -173,20 +176,17 @@ class ItemDispatchController extends Controller
      * @return \Illuminate\View\View
      */
     public function details($id) : View {
-        $adjustment = StockAdjustment::with([
-                                        'itemTransaction' => [
-                                            'item',
-                                            'tax',
-                                            'batch.itemBatchMaster',
-                                            'itemSerialTransaction.itemSerialMaster'
-                                        ]])->findOrFail($id);
+        $itemDispatch = ItemDispatch::with(['user', 'vehicle', 'salesman', 'driver',
+            'ItemDispatchTransaction' => [
+                'item',
+                'tax'
+            ]])->findOrFail($id);
 
 
         //Batch Tracking Row count for invoice columns setting
         $batchTrackingRowCount = (new GeneralDataService())->getBatchTranckingRowCount();
 
-
-        return view('stock-adjustment.details', compact('adjustment', 'batchTrackingRowCount'));
+        return view('item-dispatch.details', compact('itemDispatch', 'batchTrackingRowCount'));
     }
 
     /**
@@ -197,23 +197,21 @@ class ItemDispatchController extends Controller
      */
     public function print($id, $isPdf = false, $thermalPrint = false) : View {
 
-        $adjustment = StockAdjustment::with([
-                                        'itemTransaction' => [
-                                            'item',
-                                            'tax',
-                                            'batch.itemBatchMaster',
-                                            'itemSerialTransaction.itemSerialMaster'
-                                        ]])->findOrFail($id);
+        $itemDispatch = ItemDispatch::with(['user', 'vehicle', 'salesman', 'driver',
+            'ItemDispatchTransaction' => [
+                'item',
+                'tax'
+            ]])->findOrFail($id);
 
         //Batch Tracking Row count for invoice columns setting
         $batchTrackingRowCount = (new GeneralDataService())->getBatchTranckingRowCount();
 
         $invoiceData = [
-            'name' => __('warehouse.stock_adjustment'),
+            'name' => __('warehouse.item_dispatch'),
         ];
 
 
-        return view('print.stock-adjustment.print', compact('isPdf', 'invoiceData', 'adjustment','batchTrackingRowCount'));
+        return view('print.item-dispatch.print', compact('isPdf', 'invoiceData', 'itemDispatch','batchTrackingRowCount'));
 
     }
 
@@ -258,62 +256,23 @@ class ItemDispatchController extends Controller
     /**
      * Store Records
      * */
-    public function store(StockAdjustmentRequest $request) : JsonResponse  {
+    public function store(ItemDispatchRequest $request) : JsonResponse  {
         try {
 
             DB::beginTransaction();
             // Get the validated data from the expenseRequest
             $validatedData = $request->validated();
 
-            if($request->operation == 'save'){
-                // Create a new adjustment record using Eloquent and save it
-                $newAdjustment = StockAdjustment::create($validatedData);
+            $validatedData['transaction_id'] = $validatedData['prefix_code'] . $validatedData['count_id'];
 
-                $request->request->add(['adjustment_id' => $newAdjustment->id]);
-            }
-            else{
-                $fillableColumns = [
-                    'adjustment_date'         => $validatedData['adjustment_date'],
-                    'reference_no'          => $validatedData['reference_no'],
-                    'prefix_code'           => $validatedData['prefix_code'],
-                    'count_id'              => $validatedData['count_id'],
-                    'adjustment_code'         => $validatedData['adjustment_code'],
-                    'note'                  => $validatedData['note'],
-                ];
+            $itemDispatchTransactionArr = array();
+            $newItemDispatch = ItemDispatch::create($validatedData);
 
-                $newAdjustment = StockAdjustment::findOrFail($validatedData['adjustment_id']);
-                $newAdjustment->update($fillableColumns);
-
-                /**
-                * Before deleting ItemTransaction data take the
-                * old data of the item_serial_master_id
-                * to update the item_serial_quantity
-                * */
-               $this->previousHistoryOfItems = $this->itemTransactionService->getHistoryOfItems($newAdjustment);
-
-                $newAdjustment->itemTransaction()->delete();
-
-            }
-
-            $request->request->add(['modelName' => $newAdjustment]);
-
-            /**
-             * Save Table Items in Purchase Items Table
-             * */
-            $adjustedItemsArray = $this->saveAdjustmentItems($request);
+            $adjustedItemsArray = $this->saveDispatchItems($request, $newItemDispatch);
             if(!$adjustedItemsArray['status']){
+                DB::rollback();
+
                 throw new \Exception($adjustedItemsArray['message']);
-            }
-
-
-
-            /**
-             * UPDATE HISTORY DATA
-             * LIKE: ITEM SERIAL NUMBER QUNATITY, BATCH NUMBER QUANTITY, GENERAL DATA QUANTITY
-             * */
-            $previousItemStockUpdate = $this->itemTransactionService->updatePreviousHistoryOfItems($request->modelName, $this->previousHistoryOfItems);
-            if(!$previousItemStockUpdate){
-                throw new \Exception("Failed to update Previous Item Stock!");
             }
 
             DB::commit();
@@ -324,7 +283,7 @@ class ItemDispatchController extends Controller
             return response()->json([
                 'status'    => true,
                 'message' => __('app.record_saved_successfully'),
-                'id' => $request->adjustment_id,
+                'id' => $newItemDispatch->id,
 
             ]);
 
@@ -340,128 +299,44 @@ class ItemDispatchController extends Controller
 
     }
 
-    public function saveAdjustmentItems($request)
+    public function saveDispatchItems($request, $newItemDispatch)
     {
         $itemsCount = $request->row_count;
-
-        for ($i=0; $i < $itemsCount; $i++) {
-            /**
-             * If array record not exist then continue forloop
-             * */
-            if(!isset($request->item_id[$i])){
-                continue;
-            }
-
-            /**
-             * Data index start from 0
-             * */
-            $itemDetails = Item::find($request->item_id[$i]);
-            $itemName           = $itemDetails->name;
-
-            //validate input Quantity
-            $itemQuantity       = $request->quantity[$i];
-            if(empty($itemQuantity) || $itemQuantity === 0 || $itemQuantity < 0){
+        if($itemsCount > 0) {
+            for ($i=0; $i < $itemsCount; $i++) {
+                $itemDetails = Item::find($request->item_id[$i]);
+                $itemName = $itemDetails->name;
+                $itemQuantity = $request->quantity[$i];
+                if(empty($itemQuantity) || $itemQuantity === 0 || $itemQuantity < 0){
                     return [
                         'status' => false,
                         'message' => ($itemQuantity<0) ? __('item.item_qty_negative', ['item_name' => $itemName]) : __('item.please_enter_item_quantity', ['item_name' => $itemName]),
                     ];
-            }
-
-
-            /**
-             *
-             * Item Transaction Entry
-             * */
-            $unitqueCode = ($request->adjustment_type[$i] == 'increase') ?
-                                                ItemTransactionUniqueCode::STOCK_ADJUSTMENT_INCREASE->value
-                                                : ItemTransactionUniqueCode::STOCK_ADJUSTMENT_DECREASE->value;
-            $transaction = $this->itemTransactionService->recordItemTransactionEntry($request->modelName, [
-                'warehouse_id'              => $request->warehouse_id[$i],
-                'transaction_date'          => $request->adjustment_date,
-                'item_id'                   => $request->item_id[$i],
-                'description'               => $request->description[$i],
-
-                'tracking_type'             => $itemDetails->tracking_type,
-
-                'quantity'                  => $itemQuantity,
-                'unit_id'                   => $request->unit_id[$i],
-                'unit_price'                => 0,
-                'mrp'                       => 0,
-
-                'tax_type'                  => 'exclusive',
-                'unique_code'               => $unitqueCode,
-
-            ]);
-
-            //return $transaction;
-            if(!$transaction){
-                throw new \Exception("Failed to record Item Transaction Entry!");
-            }
-
-            /**
-             * Tracking Type:
-             * regular
-             * batch
-             * serial
-             * */
-            if($itemDetails->tracking_type == 'serial'){
-                //Serial validate and insert records
-                if($itemQuantity > 0){
-                    $jsonSerials = $request->serial_numbers[$i];
-                    $jsonSerialsDecode = json_decode($jsonSerials);
-
-                    /**
-                     * Serial number count & Enter Quntity must be equal
-                     * */
-                    $countRecords = (!empty($jsonSerialsDecode)) ? count($jsonSerialsDecode) : 0;
-                    if($countRecords != $itemQuantity){
-                        throw new \Exception(__('item.opening_quantity_not_matched_with_serial_records'));
-                    }
-
-                    foreach($jsonSerialsDecode as $serialNumber){
-                        $serialArray = [
-                            'serial_code'       =>  $serialNumber,
-                        ];
-
-                        $serialTransaction = $this->itemTransactionService->recordItemSerials($transaction->id, $serialArray, $request->item_id[$i], $request->warehouse_id[$i], $unitqueCode);
-
-                        if(!$serialTransaction){
-                            throw new \Exception(__('item.failed_to_save_serials'));
-                        }
-                    }
                 }
-            }
-            else if($itemDetails->tracking_type == 'batch'){
-                //Serial validate and insert records
-                if($itemQuantity > 0){
-                    /**
-                     * Record Batch Entry for each batch
-                     * */
-                    $batchArray = [
-                            'batch_no'              =>  $request->batch_no[$i],
-                            'mfg_date'              =>  $request->mfg_date[$i]? $this->toSystemDateFormat($request->mfg_date[$i]) : null,
-                            'exp_date'              =>  $request->exp_date[$i]? $this->toSystemDateFormat($request->exp_date[$i]) : null,
-                            'model_no'              =>  $request->model_no[$i],
-                            'mrp'                   =>  $request->mrp[$i]??0,
-                            'color'                 =>  $request->color[$i],
-                            'size'                  =>  $request->size[$i],
-                            'quantity'              =>  $itemQuantity,
-                        ];
 
-                    $batchTransaction = $this->itemTransactionService->recordItemBatches($transaction->id, $batchArray, $request->item_id[$i], $request->warehouse_id[$i], $unitqueCode);
-
-                    if(!$batchTransaction){
-                        throw new \Exception(__('item.failed_to_save_batch_records'));
-                    }
-
-                }
-            }
-            else{
-                //Regular item transaction entry already done before if() condition
+                $itemDispatchTransactionArr[] = array(
+                    'item_dispatch_id' => $newItemDispatch->id,
+                    'item_name' => $itemName,
+                    'transaction_id' => $newItemDispatch->transaction_id,
+                    'transaction_date' => $request->transaction_date,
+                    'warehouse_id' => $request->warehouse_id[$i],
+                    'item_id' => $request->item_id[$i],
+                    'description' => $request->description[$i],
+                    'tracking_type' => $itemDetails->tracking_type,
+                    'quantity' => $itemQuantity,
+                    'unit_id' => $request->unit_id[$i],
+                    'sale_price' => $itemDetails->sale_price,
+                    'purchase_price' => $itemDetails->purchase_price,
+                    'tax_id' => $itemDetails->tax_id,
+                    'sold_quantity' => 0,
+                    'remaining_quantity' => $itemQuantity,
+                    'created_at' => date('Y-m-d H:i:s', strtotime('now')),
+                    'created_by' => auth()->id()
+                );
             }
 
-
-        }//for end
+            ItemDispatchTransaction::insert($itemDispatchTransactionArr);
+        }
 
         return ['status' => true];
     }
@@ -472,26 +347,20 @@ class ItemDispatchController extends Controller
      * */
     public function datatableList(Request $request){
 
-        $data = StockAdjustment::with('user')
-                        ->when($request->user_id, function ($query) use ($request) {
-                            return $query->where('created_by', $request->user_id);
-                        })
-                        ->when($request->from_date, function ($query) use ($request) {
-                            return $query->where('adjustment_date', '>=', $this->toSystemDateFormat($request->from_date));
-                        })
-                        ->when($request->to_date, function ($query) use ($request) {
-                            return $query->where('adjustment_date', '<=', $this->toSystemDateFormat($request->to_date));
-                        })
-                        ->when(!auth()->user()->can('stock_adjustment.can.view.other.users.stock_adjustments'), function ($query) use ($request) {
-                            return $query->where('created_by', auth()->user()->id);
-                        });
+        $data = ItemDispatch::with(['user', 'vehicle', 'salesman', 'driver'])
+            ->when($request->from_date, function ($query) use ($request) {
+                return $query->where('transaction_date', '>=', $this->toSystemDateFormat($request->from_date));
+            })
+            ->when($request->to_date, function ($query) use ($request) {
+                return $query->where('transaction_date', '<=', $this->toSystemDateFormat($request->to_date));
+            });
 
         return DataTables::of($data)
                     ->filter(function ($query) use ($request) {
                         if ($request->has('search') && $request->search['value']) {
                             $searchTerm = $request->search['value'];
                             $query->where(function ($q) use ($searchTerm) {
-                                $q->where('adjustment_code', 'like', "%{$searchTerm}%")
+                                $q->where('transaction_id', 'like', "%{$searchTerm}%")
                                   ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
                                       $userQuery->where('username', 'like', "%{$searchTerm}%");
                                   });
@@ -505,29 +374,30 @@ class ItemDispatchController extends Controller
                     ->addColumn('username', function ($row) {
                         return $row->user->username??'';
                     })
-                    ->addColumn('adjustment_date', function ($row) {
-                        return $row->formatted_adjustment_date;
+                    ->addColumn('transaction_date', function ($row) {
+                        return $row->formatted_transaction_date;
                     })
-                    ->addColumn('adjustment_code', function ($row) {
-                        return $row->adjustment_code;
+                    ->addColumn('transaction_code', function ($row) {
+                        return $row->transaction_code;
                     })
                     ->addColumn('action', function($row){
                             $id = $row->id;
 
-                            $editUrl = route('stock_adjustment.edit', ['id' => $id]);
-                            $deleteUrl = route('stock_adjustment.delete', ['id' => $id]);
-                            $detailsUrl = route('stock_adjustment.details', ['id' => $id]);
-                            $printUrl = route('stock_adjustment.print', ['id' => $id]);
-                            $pdfUrl = route('stock_adjustment.pdf', ['id' => $id]);
+                            //$editUrl = route('item_dispatch.edit', ['id' => $id]);
+                            //$deleteUrl = route('item_dispatch.delete', ['id' => $id]);
+                            $detailsUrl = route('item_dispatch.details', ['id' => $id]);
+                            $printUrl = route('item_dispatch.print', ['id' => $id]);
+                            $pdfUrl = route('item_dispatch.pdf', ['id' => $id]);
 
+                            
+                                /*<li>
+                                    <a class="dropdown-item" href="' . $editUrl . '"><i class="bi bi-trash"></i><i class="bx bx-edit"></i> '.__('app.edit').'</a>
+                                </li>*/
 
                             $actionBtn = '<div class="dropdown ms-auto">
                             <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded font-22 text-option"></i>
                             </a>
                             <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" href="' . $editUrl . '"><i class="bi bi-trash"></i><i class="bx bx-edit"></i> '.__('app.edit').'</a>
-                                </li>
                                 <li>
                                     <a class="dropdown-item" href="' . $detailsUrl . '"></i><i class="bx bx-show-alt"></i> '.__('app.details').'</a>
                                 </li>
@@ -536,9 +406,6 @@ class ItemDispatchController extends Controller
                                 </li>
                                 <li>
                                     <a target="_blank" class="dropdown-item" href="' . $pdfUrl . '"></i><i class="bx bxs-file-pdf"></i> '.__('app.pdf').'</a>
-                                </li>
-                                <li>
-                                    <button type="button" class="dropdown-item text-danger deleteRequest" data-delete-id='.$id.'><i class="bx bx-trash"></i> '.__('app.delete').'</button>
                                 </li>
                             </ul>
                         </div>';
@@ -639,6 +506,17 @@ class ItemDispatchController extends Controller
                 'message' => __('app.cannot_delete_records'),
             ],409);
         }
+    }
+
+    
+
+    /**
+     * vehicle
+     * */
+    public function vehicle($id){
+        $itemDispatchDetail = ItemDispatch::where('vehicle_id', $id)->orderBy('id', 'desc')->first();
+
+        return response()->json($itemDispatchDetail);
     }
 
 }

@@ -550,9 +550,15 @@ Route::middleware('auth')->group(function () {
                 ->middleware('can:item_dispatch.view')
                 ->name('item_dispatch.print');
 
+        Route::get('/details/{id}', [ItemDispatchController::class, 'details'])
+                ->middleware('can:item_dispatch.view')
+                ->name('item_dispatch.details');
+
         Route::get('/pdf/{id}', [ItemDispatchController::class, 'generatePdf'])
                 ->middleware('can:item_dispatch.view')
                 ->name('item_dispatch.pdf');
+
+        Route::get('/vehicle/{id}', [ItemDispatchController::class, 'vehicle'])->name('item_dispatch.vehicle');
     });
 
     /**

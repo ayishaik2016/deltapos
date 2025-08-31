@@ -6,9 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\VehicleType;
 
-class Vehicle extends Model
+class VehicleType extends Model
 {
     use HasFactory;
     /**
@@ -16,21 +15,11 @@ class Vehicle extends Model
      *
      * @var array<int, string>
      */
-    protected $table = 'vehicle';
+    protected $table = 'vehicle_type';
     protected $primaryKey = 'id';
     protected $fillable = [
         'name',
         'description',
-        'vehicle_number',
-        'vehicle_type_id',
-        'photos1',
-        'photos2',
-        'photos3',
-        'photos4',
-        'documents1',
-        'documents2',
-        'documents3',
-        'documents4',
         'status',
     ];
 
@@ -59,15 +48,5 @@ class Vehicle extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /**
-     * Define the relationship between Order and User.
-     *
-     * @return BelongsTo
-     */
-    public function vehicleType(): BelongsTo
-    {
-        return $this->belongsTo(VehicleType::class, 'vehicle_type_id');
     }
 }

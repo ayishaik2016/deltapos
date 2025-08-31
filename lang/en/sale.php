@@ -116,4 +116,5 @@ return [
     'allow_user_to_update_the_selected_item' => 'Allow User to Update Item Price',
     'allow_user_to_update_the_item_total' => 'Allow User to Update Total Price',
     'allow_user_to_view_additional_fields' => 'Allow User to View Additional Fields',
+    'allow_user_to_select_item_dispatch' => 'Allow user to select item dispatch',
 ];

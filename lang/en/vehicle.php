@@ -19,5 +19,7 @@ return [
     'create_vehicle' => 'Create Vehicle',
     'vehicle_number' => 'Vehicle Number',
     'details' => 'Details',
-    'update_vehicle' => 'Update Vehicle'
+    'update_vehicle' => 'Update Vehicle',
+    'driver' => 'Driver',
+    'salesman' => 'Salesman',
 ];

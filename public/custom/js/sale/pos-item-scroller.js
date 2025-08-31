@@ -17,7 +17,7 @@ let startFromFirst = 0;
 $("#loadMoreBtn").on('click', function(){
     loadMoreItems();
 });
-$("#item_category_id, #item_brand_id, #warehouse_id, #party_id").on('change', function(){
+$("#item_category_id, #item_brand_id, #warehouse_id, #party_id, #vehicle_id").on('change', function(){
     currentPage = 0;
     startFromFirst = 0;
     loadMoreItems();
@@ -35,6 +35,7 @@ function loadMoreItems() {
             item_brand_id : $("#item_brand_id").val(),
             warehouse_id : $("#warehouse_id").val(),
             party_id : $("#party_id").val(),
+            vehicle_id : $("#vehicle_id").val(),
         },
         beforeSend: function() {
           showLoadingMessage(); // Show the loading message

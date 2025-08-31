@@ -40,6 +40,7 @@
                                         <th><input class="form-check-input row-select" type="checkbox"></th>
 										<th>{{ __('app.name') }}</th>
 										<th>{{ __('vehicle.vehicle_number') }}</th>
+										<th>{{ __('vehicle.vehicle_type') }}</th>
 										<th>{{ __('app.status') }}</th>
 										<th>{{ __('app.created_by') }}</th>
 										<th>{{ __('app.created_at') }}</th>

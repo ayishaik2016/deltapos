@@ -8,17 +8,24 @@ $(function() {
     /**
      *Server Side Datatable Records
     */
-    function loadDatatables(){
+    window.loadDatatables = function() {
         //Delete previous data
         tableId.DataTable().destroy();
 
-        var exportColumns = [2,3,4,5,6,7];//Index Starts from 0
+        var exportColumns = [2,3,4,5];//Index Starts from 0
 
         var table = tableId.DataTable({
             processing: true,
             serverSide: true,
             method:'get',
-            ajax: baseURL + '/vehicle/datatable-list',
+            ajax: {
+                    url: baseURL+'/item-dispatch/datatable-list',
+                    data:{
+                            user_id : $('#user_id').val(),
+                            from_date : $('input[name="from_date"]').val(),
+                            to_date : $('input[name="to_date"]').val(),
+                        },
+                },
             columns: [
                 {targets: 0, data:'id', orderable:true, visible:false},
                 {
@@ -29,24 +36,8 @@ $(function() {
                         return '<input type="checkbox" class="form-check-input row-select" name="record_ids[]" value="' + data + '">';
                       }
                 },
-                {data: 'name', name: 'name'},
-                {data: "vehicle_number", name: "vehicle_number"},
-                {data: "vehicle_type", name: "vehicle_type"},
-                {
-                    data: 'status',
-                    name: 'status',
-                    orderable: false,
-                    className: 'text-center',
-                    render: function(data, type, full, meta) {
-                        if(data == 1){
-                            return '<div class="badge rounded-pill text-success bg-light-success p-2 text-uppercase px-3">Active</div>';
-                        }
-                        else{
-                            return '<div class="badge rounded-pill text-danger bg-light-danger p-2 text-uppercase px-3">Inactive</div>';
-                        }
-
-                    }
-                },
+                {data: 'transaction_id', name: 'transaction_id'},
+                {data: 'transaction_date', name: 'transaction_date'},
                 {data: 'username', name: 'username'},
                 {data: 'created_at', name: 'created_at'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
@@ -113,7 +104,13 @@ $(function() {
                 style: 'os',
                 selector: 'td:first-child'
             },
-            order: [[0, 'desc']]
+            order: [[0, 'desc']],
+            drawCallback: function() {
+                /**
+                 * Initialize Tooltip
+                 * */
+                setTooltip();
+            }
 
 
         });
@@ -240,7 +237,7 @@ $(function() {
             },
         });
         jqxhr.done(function(data) {
-            
+
             iziToast.success({title: 'Success', layout: 2, message: data.message});
         });
         jqxhr.fail(function(response) {
@@ -262,6 +259,11 @@ $(function() {
     $(document).ready(function() {
         //Load Datatable
         loadDatatables();
+
 	} );
+
+    $(document).on("change", 'input[name="from_date"], input[name="to_date"]', function function_name(e) {
+        loadDatatables();
+    });
 
 });

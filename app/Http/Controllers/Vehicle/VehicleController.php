@@ -11,6 +11,7 @@ use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
 
 use App\Models\Vehicle;
+use App\Models\VehicleType;
 
 class VehicleController extends Controller
 {
@@ -68,6 +69,7 @@ class VehicleController extends Controller
         $settings = Vehicle::find($validatedData['id']);
         $settings->name = $validatedData['name'];
         $settings->vehicle_number = $validatedData['vehicle_number'];
+        $settings->vehicle_type_id = $validatedData['vehicle_type_id'];
         $settings->description = $validatedData['description'];
         $settings->status = $validatedData['status'];
      
@@ -92,6 +94,9 @@ class VehicleController extends Controller
                     })
                     ->addColumn('username', function ($row) {
                         return $row->user->username??'';
+                    })
+                    ->addColumn('vehicle_type', function ($row) {
+                        return $row->vehicleType->name??'';
                     })
                     ->addColumn('action', function($row){
                             $id = $row->id;

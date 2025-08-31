@@ -33,6 +33,7 @@ use App\Services\CacheService;
 use App\Services\AccountTransactionService;
 use App\Enums\ItemTransactionUniqueCode;
 use App\Models\Party\Party;
+use App\Models\ItemDispatch;
 
 use Spatie\Image\Image;
 
@@ -822,14 +823,32 @@ class ItemController extends Controller
      * Search Bar list
      * */
     function getAjaxItemSearchBarList(){
+        $itemArr = array();
         $search = request('search');
+        $stockAvailable = request('stock_available') ?? 0;
         $page = request('page', 1); // current page
         $perPage = 10;              // items per page
         $offset = ($page - 1) * $perPage;
+        $vehicleId = request('vehicle_id') ?? '';
 
         $showWholesalePrice = Party::select('is_wholesale_customer')
             ->find(request('party_id'))
             ?->is_wholesale_customer ?? false;
+
+        if($vehicleId) {
+            $itemDispatchDetail = ItemDispatch::where('vehicle_id', $vehicleId)->orderBy('id', 'desc')->first();
+            if(!$itemDispatchDetail) {
+                return response()->json([]);
+            }
+
+            $itemDispatchTransaction = $itemDispatchDetail->ItemDispatchTransaction;
+            
+            if($itemDispatchTransaction) {
+                foreach($itemDispatchTransaction as $itemTransaction) {
+                    $itemArr[] = $itemTransaction->item_id;
+                }
+            }
+        }
 
         $query = Item::with(['tax', 'brand' => function ($query) {
             $query->select('id', 'name');
@@ -843,6 +862,14 @@ class ItemController extends Controller
                     $brandQuery->where('name', 'LIKE', "%{$search}%");
                 });
         });
+
+        if(!empty($itemArr)) {
+            $query->whereIn('id', $itemArr);
+        }
+
+        if($stockAvailable > 0) {
+            $query->where('current_stock', 1);
+        }
 
         // Get total for pagination
         $totalCount = $query->count();
@@ -869,17 +896,33 @@ class ItemController extends Controller
 
     public function getAjaxItemSearchPOSList()
     {
+        $itemArr = array();
         $search = request('search');
         $categoryId = request('item_category_id');
         $brandId = request('item_brand_id');
         $warehouseId = request('warehouse_id');
         $partyId = request('party_id');
+        $vehicleId = request('vehicle_id') ?? '';
         $page = request('page', 1); // Get the page from the request, default to 1
 
         $showWholesalePrice = Party::select('is_wholesale_customer')
                                     ->find(request('party_id'))
                                     ?->is_wholesale_customer ?? false;
+        if($vehicleId) {
+            $itemDispatchDetail = ItemDispatch::where('vehicle_id', $vehicleId)->orderBy('id', 'desc')->first();
+            if(!$itemDispatchDetail) {
+                return response()->json([]);
+            }
 
+            $itemDispatchTransaction = $itemDispatchDetail->ItemDispatchTransaction;
+            
+            if($itemDispatchTransaction) {
+                foreach($itemDispatchTransaction as $itemTransaction) {
+                    $itemArr[] = $itemTransaction->item_id;
+                }
+            }
+        }
+        
         $itemMaster = Item::with([
                             'tax',
                             'brand',
@@ -896,6 +939,11 @@ class ItemController extends Controller
                         })
                         ->when($brandId, function ($query) use ($brandId) {
                             return $query->where('brand_id', $brandId);
+                        })
+                        ->when($itemArr, function ($query) use ($itemArr) {
+                            if(!empty($itemArr)) {
+                                return $query->whereIn('id', $itemArr);
+                            }
                         })
                         ->paginate(15, ['*'], 'page', $page); // Use pagination for infinite scroll
 

@@ -32,6 +32,10 @@
                                         <x-input type="text" name="vehicle_number" :required="true" value="{{ $vehicle->vehicle_number }}"/>
                                     </div>
                                     <div class="col-md-6">
+                                        <x-label for="vehicle_type_id" name="{{ __('vehicle.vehicle_type') }}" />
+                                        <x-dropdown-vehicle-type selected="{{ $vehicle->vehicle_type_id }}" dropdownName="vehicle_type_id" />
+                                    </div>
+                                    <div class="col-md-6">
                                         <x-label for="description" name="{{ __('app.description') }}" />
                                         <x-textarea name="description" value="{{ $vehicle->description }}"/>
                                     </div>

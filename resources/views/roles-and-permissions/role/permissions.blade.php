@@ -429,6 +429,12 @@
                                                         <input class="form-check-input sale_invoice_group_p" type="checkbox" name="permission[sale.invoice.total.update]" id="sale.invoice.total.update">
                                                         <label for="sale.invoice.total.update">{{ __('sale.allow_user_to_update_the_item_total') }}</label>
                                                         <br>
+                                                        <input class="form-check-input sale_invoice_group_p" type="checkbox" name="permission[sale.invoice.additional.fields]" id="sale.invoice.additional.fields">
+                                                        <label for="sale.invoice.additional.fields">{{ __('sale.allow_user_to_view_additional_fields') }}</label>
+                                                        <br>
+                                                        <input class="form-check-input sale_invoice_group_p" type="checkbox" name="permission[sale.invoice.item.dispatch]" id="sale.invoice.item.dispatch">
+                                                        <label for="sale.invoice.item.dispatch">{{ __('sale.allow_user_to_select_item_dispatch') }}</label>
+                                                        <br>
                                                     </td>
                                                 </tr>
                                                 <tr>
