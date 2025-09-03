@@ -825,7 +825,8 @@ class ItemController extends Controller
     function getAjaxItemSearchBarList(){
         $itemArr = array();
         $search = request('search');
-        $stockAvailable = request('stock_available') ?? 0;
+        //$stockAvailable = request('stock_available') ?? 0;
+        $stockAvailable = 0;
         $page = request('page', 1); // current page
         $perPage = 10;              // items per page
         $offset = ($page - 1) * $perPage;
