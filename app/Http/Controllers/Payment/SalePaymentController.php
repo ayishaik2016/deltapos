@@ -318,6 +318,9 @@ class SalePaymentController extends Controller
                     })
                     ->when($request->to_date, function ($query) use ($request) {
                         return $query->where('transaction_date', '<=', $this->toSystemDateFormat($request->to_date));
+                    })
+                    ->when(!auth()->user()->can('sale.invoice.can.view.other.users.sale.invoices'), function ($query) use ($request) {
+                        return $query->where('created_by', auth()->user()->id);
                     });
                 }
 

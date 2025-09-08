@@ -19,6 +19,7 @@ return [
         'please_enter_item_quantity'   => 'Please enter valid quantity of Item ":item_name"',
         'item_qty_negative'             => 'Item ":item_name" Quantity should not be negative',
         'please_select_items'           => 'Please Select Items',
+        'please_select_quantity'        => 'Please Select Quantity',
         'show_sku'                      => 'Show SKU',
         'show_mrp'                      => 'Show MRP',
         'pricing'                       => 'Pricing',

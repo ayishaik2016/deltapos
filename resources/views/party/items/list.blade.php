@@ -21,7 +21,7 @@
                         <!-- Other content on the left side -->
                         <div>
                             <h5 class="mb-0">
-                                <small class="text-transform-none">{{ __('party.customer_items') }}</small>
+                                <small class="text-transform-none">{{ __('party.customer_items') . ' - ' . $party->first_name . ' ' . $party->last_name }}</small>
                             </h5>
                         </div>
                     </div>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Models\ItemDispatch;
+use App\Models\ItemDispatchTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
@@ -478,7 +480,6 @@ class SaleController extends Controller
      * */
     public function store(SaleRequest $request) : JsonResponse  {
         try {
-
             DB::beginTransaction();
             // Get the validated data from the expenseRequest
             $validatedData = $request->validated();
@@ -507,7 +508,6 @@ class SaleController extends Controller
 
                 $newSale = Sale::findOrFail($validatedData['sale_id']);
                 $newSale->update($fillableColumns);
-
                 /**
                 * Before deleting ItemTransaction data take the
                 * old data of the item_serial_master_id
@@ -551,9 +551,7 @@ class SaleController extends Controller
 
                 // $newSale->paymentTransaction()->delete();
             }
-            
             $request->request->add(['modelName' => $newSale]);
-
             /**
              * Save Table Items in Sale Items Table
              * */
@@ -577,8 +575,6 @@ class SaleController extends Controller
             if($paidAmount < 0){
                 throw new \Exception(__('payment.paid_amount_should_not_be_less_than_zero'));
             }
-
-
 
             /**
              * Paid amount should not be greater than grand total
@@ -787,7 +783,18 @@ class SaleController extends Controller
 
     public function saveSaleItems($request)
     {
+        $totalQuantity = 0;
         $itemsCount = $request->row_count;
+        $itemDispatchId = $request->item_dispatch_id ?? '';
+        if($itemDispatchId) {
+            $itemDispatchDetail = ItemDispatch::where('id', $itemDispatchId)->first();
+            if(empty($itemDispatchDetail)){
+                return [
+                    'status' => false,
+                    'message' =>  __('sale.invalid_item_dispatch'),
+                ];
+            }
+        }
 
         $isWholesaleCustomer = $request->only('is_wholesale_customer')['is_wholesale_customer'];
 
@@ -798,20 +805,19 @@ class SaleController extends Controller
             if(!isset($request->item_id[$i])){
                 continue;
             }
-
             /**
              * Data index start from 0
              * */
             $itemDetails = Item::find($request->item_id[$i]);
-            $itemName           = $itemDetails->name;
+            $itemName = $itemDetails->name;
 
             //validate input Quantity
             $itemQuantity       = $request->quantity[$i];
             if(empty($itemQuantity) || $itemQuantity === 0 || $itemQuantity < 0){
-                    return [
-                        'status' => false,
-                        'message' => ($itemQuantity<0) ? __('item.item_qty_negative', ['item_name' => $itemName]) : __('item.please_enter_item_quantity', ['item_name' => $itemName]),
-                    ];
+                return [
+                    'status' => false,
+                    'message' => ($itemQuantity<0) ? __('item.item_qty_negative', ['item_name' => $itemName]) : __('item.please_enter_item_quantity', ['item_name' => $itemName]),
+                ];
             }
 
             //Validate is negative stock entry allowed or not for General Item
@@ -829,7 +835,6 @@ class SaleController extends Controller
 
             //Auto-Update Item Master Sale Price
             $this->updateItemMasterSalePrice($request, $isWholesaleCustomer, $i);
-
 
             /**
              *
@@ -861,10 +866,39 @@ class SaleController extends Controller
                 'total'                     => $request->total[$i],
 
             ]);
-
             //return $transaction;
             if(!$transaction){
                 throw new \Exception("Failed to record Item Transaction Entry!");
+            }
+            
+            if($itemDispatchId) {
+                $itemDispatchQuantity = $this->itemTransactionService->getItemTransactionQuantity($request->modelName->id, $request->item_id[$i]);
+
+                $itemDispatchTransaction = ItemDispatchTransaction::where(['item_dispatch_id' => $itemDispatchId, 'item_id' => $request->item_id[$i]])->first();
+                if(empty($itemDispatchTransaction)){
+                    return [
+                        'status' => false,
+                        'message' => __('sale.invalid_dispatch_item'),
+                    ];
+                }
+
+                if(($itemDispatchTransaction->remaining_quantity == 0 || $itemDispatchTransaction->remaining_quantity < 0) || $itemDispatchQuantity > $itemDispatchTransaction->remaining_quantity){
+                    $errorMessage = __('sale.no_dispatch_quanity', ['item_name' => $itemName]);
+                    if($itemDispatchTransaction->remaining_quantity > 0 && $itemDispatchQuantity > $itemDispatchTransaction->remaining_quantity) {
+                        $errorMessage = __('sale.quantity_should_not_more_dispatch_item_quantity', ['item_name' => $itemName]);
+                    }
+                    
+                    return [
+                        'status' => false,
+                        'message' => $errorMessage
+                    ];
+                }
+
+                $itemDispatchTransaction->sold_quantity += $itemDispatchQuantity;
+                $itemDispatchTransaction->remaining_quantity -= $itemDispatchQuantity;
+                $itemDispatchTransaction->save();
+
+                $totalQuantity += $itemDispatchQuantity;
             }
 
 
@@ -928,23 +962,22 @@ class SaleController extends Controller
             }
             else{
                 //Regular item transaction entry already done before if() condition
-
-
-
             }
-
-
         }//for end
+
+        if($itemDispatchId) {
+            $itemDispatchDetail->total_sold_quantity += $totalQuantity;
+            $itemDispatchDetail->total_remaining_quantity -= $totalQuantity;
+            $itemDispatchDetail->save();
+        }
 
         return ['status' => true];
     }
-
 
     /**
      * Datatabale
      * */
     public function datatableList(Request $request){
-
         $data = Sale::with('user', 'party')
                         ->when($request->party_id, function ($query) use ($request) {
                             return $query->where('party_id', $request->party_id);
@@ -1050,7 +1083,7 @@ class SaleController extends Controller
                     })
                     ->addColumn('action', function($row){
                             $id = $row->id;
-
+                            $roles = config('constants.roles');
                             $editUrl = route('sale.invoice.edit', ['id' => $id]);
                             $deleteUrl = route('sale.invoice.delete', ['id' => $id]);
                             $detailsUrl = route('sale.invoice.details', ['id' => $id]);
@@ -1069,46 +1102,73 @@ class SaleController extends Controller
                                 $convertToSaleIcon = 'transfer-alt';
                             //}
 
-                            $actionBtn = '<div class="dropdown ms-auto">
-                            <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded font-22 text-option"></i>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" href="' . $editUrl . '"><i class="bi bi-trash"></i><i class="bx bx-edit"></i> '.__('app.edit').'</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="' . $convertToSale . '"><i class="bx bx-'.$convertToSaleIcon.'"></i> '.$convertToSaleText.'</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="' . $detailsUrl . '"></i><i class="bx bx-show-alt"></i> '.__('app.details').'</a>
-                                </li>
-                                <li>
-                                    <a target="_blank" class="dropdown-item" href="' . $printUrl . '"></i><i class="bx bx-printer "></i> '.__('app.print').'</a>
-                                </li>
-                                <li>
-                                    <a target="_blank" class="dropdown-item" href="' . $pdfUrl . '"></i><i class="bx bxs-file-pdf"></i> '.__('app.pdf').'</a>
-                                </li>
-                                <li>
-                                    <a target="_blank" class="dropdown-item" href="' . $printUrlPOS . '"></i><i class="bx bx-printer" type="solid"></i> '.__('sale.pos_print').'</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item make-payment" data-invoice-id="' . $id . '" role="button"></i><i class="bx bx-money"></i> '.__('payment.receive_payment').'</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item payment-history" data-invoice-id="' . $id . '" role="button"></i><i class="bx bx-table"></i> '.__('payment.history').'</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item notify-through-email" data-model="sale/invoice" data-id="' . $id . '" role="button"></i><i class="bx bx-envelope"></i> '.__('app.send_email').'</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item notify-through-sms" data-model="sale/invoice" data-id="' . $id . '" role="button"></i><i class="bx bx-envelope"></i> '.__('app.send_sms').'</a>
-                                </li>
-                                <li>
-                                    <button type="button" class="dropdown-item text-danger deleteRequest" data-delete-id='.$id.'><i class="bx bx-trash"></i> '.__('app.delete').'</button>
-                                </li>
-                            </ul>
-                        </div>';
-                            return $actionBtn;
+                            if(auth()->user()->role_id == $roles['SALESMAN'] || auth()->user()->role_id == $roles['DRIVER']) {
+                                 $actionBtn = '<div class="dropdown ms-auto">
+                                    <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded font-22 text-option"></i>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="' . $detailsUrl . '"></i><i class="bx bx-show-alt"></i> '.__('app.details').'</a>
+                                        </li>
+                                        <li>
+                                            <a target="_blank" class="dropdown-item" href="' . $printUrl . '"></i><i class="bx bx-printer "></i> '.__('app.print').'</a>
+                                        </li>
+                                        <li>
+                                            <a target="_blank" class="dropdown-item" href="' . $pdfUrl . '"></i><i class="bx bxs-file-pdf"></i> '.__('app.pdf').'</a>
+                                        </li>
+                                        <li>
+                                            <a target="_blank" class="dropdown-item" href="' . $printUrlPOS . '"></i><i class="bx bx-printer" type="solid"></i> '.__('sale.pos_print').'</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item make-payment" data-invoice-id="' . $id . '" role="button"></i><i class="bx bx-money"></i> '.__('payment.receive_payment').'</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item payment-history" data-invoice-id="' . $id . '" role="button"></i><i class="bx bx-table"></i> '.__('payment.history').'</a>
+                                        </li>
+                                    </ul>
+                                </div>';
+                            } else {
+                                $actionBtn = '<div class="dropdown ms-auto">
+                                <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded font-22 text-option"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="' . $editUrl . '"><i class="bi bi-trash"></i><i class="bx bx-edit"></i> '.__('app.edit').'</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="' . $convertToSale . '"><i class="bx bx-'.$convertToSaleIcon.'"></i> '.$convertToSaleText.'</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="' . $detailsUrl . '"></i><i class="bx bx-show-alt"></i> '.__('app.details').'</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" class="dropdown-item" href="' . $printUrl . '"></i><i class="bx bx-printer "></i> '.__('app.print').'</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" class="dropdown-item" href="' . $pdfUrl . '"></i><i class="bx bxs-file-pdf"></i> '.__('app.pdf').'</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" class="dropdown-item" href="' . $printUrlPOS . '"></i><i class="bx bx-printer" type="solid"></i> '.__('sale.pos_print').'</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item make-payment" data-invoice-id="' . $id . '" role="button"></i><i class="bx bx-money"></i> '.__('payment.receive_payment').'</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item payment-history" data-invoice-id="' . $id . '" role="button"></i><i class="bx bx-table"></i> '.__('payment.history').'</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item notify-through-email" data-model="sale/invoice" data-id="' . $id . '" role="button"></i><i class="bx bx-envelope"></i> '.__('app.send_email').'</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item notify-through-sms" data-model="sale/invoice" data-id="' . $id . '" role="button"></i><i class="bx bx-envelope"></i> '.__('app.send_sms').'</a>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger deleteRequest" data-delete-id='.$id.'><i class="bx bx-trash"></i> '.__('app.delete').'</button>
+                                    </li>
+                                </ul>
+                            </div>';
+                        }
+                        return $actionBtn;
                     })
                     ->rawColumns(['action'])
                     ->make(true);

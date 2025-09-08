@@ -60,6 +60,9 @@
                                             <th class="d-none"><!-- Which Stores ID & it is used for sorting --></th>
                                             <th><input class="form-check-input row-select" type="checkbox"></th>
                                             <th>{{ __('warehouse.transaction_id') }}</th>
+                                            <th>{{ __('warehouse.total_no_of_quantity') }}</th>
+                                            <th>{{ __('warehouse.total_no_of_sold_quantity') }}</th>
+                                            <th>{{ __('warehouse.total_no_of_remaining_quantity') }}</th>
                                             <th>{{ __('app.date') }}</th>
                                             <th>{{ __('app.created_by') }}</th>
                                             <th>{{ __('app.created_at') }}</th>

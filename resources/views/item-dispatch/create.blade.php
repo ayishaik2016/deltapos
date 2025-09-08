@@ -105,6 +105,8 @@
                                                         <tr>
                                                             <td colspan="2" class="fw-bold text-end tfoot-first-td">
                                                                 {{ __('app.total') }}
+                                                                <input type="hidden" name="total_quantity" id="total_quantity" value="0">
+                                                                <input type="hidden" name="total_remaining_quantity" id="total_remaining_quantity" value="0">
                                                             </td>
                                                             <td class="fw-bold sum_of_quantity">
                                                                 0

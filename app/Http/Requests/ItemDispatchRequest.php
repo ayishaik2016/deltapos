@@ -45,7 +45,9 @@ class ItemDispatchRequest extends FormRequest
             'transaction_code'           => ['required', 'string','max:50'],
             'reference_no'           => ['nullable', 'string','max:50'],
             'note'                 => ['nullable', 'string','max:250'],
-            'row_count'            => ['required', 'integer', 'min:1'],
+            'row_count'            => ['required', 'numeric', 'min:1'],
+            'total_quantity'        => ['required', 'numeric', 'min:1'],
+            'total_remaining_quantity'        => ['required', 'numeric', 'min:1'],
         ];
 
         //For Update Operation
@@ -88,7 +90,8 @@ class ItemDispatchRequest extends FormRequest
     public function messages(): array
     {
         $responseMessages = [
-            'row_count.min'     => __('item.please_select_items')
+            'row_count.min'     => __('item.please_select_items'),
+            'total_quantity.min'     => __('item.please_select_quantity'),
         ];
 
         if ($this->isMethod('PUT')) {

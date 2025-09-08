@@ -99,7 +99,7 @@ use App\Models\Sale\SaleOrder;
 |
 */
 
-Route::get('/', function () {
+Route::any('/', function () {
     return redirect('/login');
 });
 
@@ -1729,7 +1729,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/sale-invoice/get/{id}', [SalePaymentController::class, 'getSaleBillPayment'])
                 ->middleware('can:sale.invoice.create');
         //save payment
-        Route::post('/sale-invoice/store', [SalePaymentController::class, 'storeSaleBillPayment'])->name('store.sale.invoice.payment');//Save operation
+        Route::post('/sale-invoice/invoice/store', [SalePaymentController::class, 'storeSaleBillPayment'])->name('store.sale.invoice.payment');//Save operation
         //get payment history
         Route::get('/sale-invoice/history/{id}', [SalePaymentController::class, 'getSaleBillPaymentHistory'])
                 ->middleware('can:sale.invoice.view');

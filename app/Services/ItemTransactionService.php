@@ -27,6 +27,7 @@ use App\Enums\ItemTransactionUniqueCode;
 use App\Models\Sale\Quotation;
 use App\Models\StockAdjustment;
 use App\Models\User;
+use App\Models\Company;
 
 class ItemTransactionService{
 
@@ -41,8 +42,9 @@ class ItemTransactionService{
     public function __construct(ItemService $itemService)
     {
         $this->itemService = $itemService;
-        if(app('company')['allow_negative_stock_billing']) {
-            $this->canAllowNegativeStockBilling = app('company')['allow_negative_stock_billing'];
+        // if(app('company')['allow_negative_stock_billing']) {
+        if(app(\App\Models\Company::class)){
+            $this->canAllowNegativeStockBilling = app(\App\Models\Company::class)['allow_negative_stock_billing'];
         }
     }
     public function transactionUniqueCode($model){
@@ -1055,9 +1057,26 @@ class ItemTransactionService{
         return $result;
     }
 
+    /**
+     * Get item transaction quantity
+     *
+     * */
+    public function getItemTransactionQuantity($itemTransactionId, $itemId){
+        $itemTransactions = ItemTransaction::selectRaw('
+                CASE
+                    WHEN items.base_unit_id = item_transactions.unit_id THEN quantity
+                    WHEN items.secondary_unit_id = item_transactions.unit_id THEN quantity / items.conversion_rate
+                    ELSE 0
+                END
+            AS item_stock,
+            item_id
+        ')
+        ->join('items', 'item_transactions.item_id', '=', 'items.id')
+        ->where('transaction_id', $itemTransactionId)
+        ->where('item_id', $itemId)
+        ->where('transaction_type', ItemTransactionUniqueCode::SALE)
+        ->first();
 
-
-
-
-
+        return $itemTransactions->item_stock ?? 0;
+    }
 }

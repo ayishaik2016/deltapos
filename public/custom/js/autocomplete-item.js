@@ -24,6 +24,7 @@ function initItemAutocomplete(inputSelector, options = {}) {
                     warehouse_id: options.warehouse_id || '',
                     party_id: options.party_id || '',
                     vehicle_id: options.vehicle_id || '',
+                    item_dispatch_id: options.item_dispatch_id || '',
                     page: itemSearchPage,
                     request_from: options.request_from || '',
                     stock_available: options.stock_available || 0,

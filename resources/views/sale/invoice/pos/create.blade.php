@@ -7,6 +7,8 @@
     if(auth()->user()->can('sale.invoice.total.update')) {
         $itemTotalUpdatePermission = true;
     }
+
+    $themeBgColor = $themeBgColor ?? 'bg-white';
 @endphp
 
 @section('css')
@@ -86,6 +88,7 @@
                                             <x-dropdown-vehicle selected="" dropdownName="vehicle_id" />
                                         </div>
                                         <div class="col-md-6 mb-3">
+                                            <input type="hidden" name="item_dispatch_id" id="item_dispatch_id">
                                             <h4 id="item_dispatch"></h4>
                                         </div>
                                     @endcan
@@ -334,12 +337,11 @@
 <script src="{{ versionedAsset('custom/js/modals/party/party.js') }}"></script>
 <script src="{{ versionedAsset('custom/js/modals/item/item.js') }}"></script>
 
-
 <script>
     @if(in_array(auth()->user()->role_id, $itemDispatchPermission)) 
         var url = baseURL + '/item-dispatch/vehicle/';
         ajaxGetRequest(url , $('#vehicle_id option:selected').val(), 'vehicle-item-dispatch');
-
+    
         $('#vehicle_id').attr('disabled', 'disabled');
     @endif
 </script>

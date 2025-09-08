@@ -130,29 +130,19 @@
                                             </tbody>
                                             <tfoot>
                                                 @php
-                                                $totalQuantity = $itemDispatch->ItemDispatchTransaction->sum(function ($transaction) {
-                                                    return $transaction->quantity;
-                                                });
-                                                $totalSoldQuantity = $itemDispatch->ItemDispatchTransaction->sum(function ($transaction) {
-                                                    return $transaction->sold_quantity;
-                                                });
-                                                $totalRemainingQuantity = $itemDispatch->ItemDispatchTransaction->sum(function ($transaction) {
-                                                    return $transaction->remaining_quantity;
-                                                });
-
                                                 $columnCount = 5;
                                                 @endphp
                                                 <tr>
                                                     <td colspan="{{$columnCount}}" class="tfoot-first-td">{{ __('warehouse.total_no_of_quantity') }}</td>
-                                                    <td class="text-start">{{ $formatNumber->formatQuantity($totalQuantity) }}</td>
+                                                    <td class="text-start">{{ $formatNumber->formatQuantity($itemDispatch->total_quantity) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="{{$columnCount}}" class="tfoot-first-td">{{ __('warehouse.total_no_of_sold_quantity') }}</td>
-                                                    <td class="text-start">{{ $formatNumber->formatQuantity($totalSoldQuantity) }}</td>
+                                                    <td class="text-start">{{ $formatNumber->formatQuantity($itemDispatch->total_sold_quantity) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="{{$columnCount}}" class="tfoot-first-td">{{ __('warehouse.total_no_of_remaining_quantity') }}</td>
-                                                    <td class="text-start">{{ $formatNumber->formatQuantity($totalRemainingQuantity) }}</td>
+                                                    <td class="text-start">{{ $formatNumber->formatQuantity($itemDispatch->total_remaining_quantity) }}</td>
                                                 </tr>
                                                 <tr></tr>
 

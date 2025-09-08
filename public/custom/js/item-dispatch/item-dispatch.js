@@ -437,6 +437,7 @@
         var sumOfQuantityColumn = returnSumOfQuantityColumn();
         //Set Sum Of Total
         $('.sum_of_quantity').text(_parseFix(sumOfQuantityColumn));
+        $('#total_quantity, #total_remaining_quantity').val(_parseFix(sumOfQuantityColumn));
     }
     /**
      * Main:

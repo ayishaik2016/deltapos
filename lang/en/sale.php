@@ -117,4 +117,9 @@ return [
     'allow_user_to_update_the_item_total' => 'Allow User to Update Total Price',
     'allow_user_to_view_additional_fields' => 'Allow User to View Additional Fields',
     'allow_user_to_select_item_dispatch' => 'Allow user to select item dispatch',
+
+    'invalid_dispatch'  => 'Invalid dispatch',
+    'invalid_dispatch_item'  => 'Invalid dispatch item',
+    'no_dispatch_quanity'   => 'Dispatch item quantity is sold" :item_name"',
+    'quantity_should_not_more_dispatch_item_quantity' => 'Please reduce the quantity ":item_name"',
 ];

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Items;
 
+use App\Models\ItemDispatchTransaction;
+use App\Models\Warehouse;
 use App\Traits\FormatNumber;
 use App\Traits\FormatsDateInputs;
 use App\Http\Controllers\Controller;
@@ -495,7 +497,7 @@ class ItemController extends Controller
                     })
                     ->addIndexColumn()
                     ->addColumn('created_at', function ($row) {
-                        return $row->created_at->format(app('company')['date_format']);
+                        return $row->created_at->format(app(\App\Models\Company::class)['date_format']);
                     })
                     ->addColumn('username', function ($row) {
                         return $row->user->username??'';
@@ -825,19 +827,20 @@ class ItemController extends Controller
     function getAjaxItemSearchBarList(){
         $itemArr = array();
         $search = request('search');
-        //$stockAvailable = request('stock_available') ?? 0;
-        $stockAvailable = 0;
+        $stockAvailable = request('stock_available') ?? 0;
+        // $stockAvailable = 0;
         $page = request('page', 1); // current page
         $perPage = 10;              // items per page
         $offset = ($page - 1) * $perPage;
         $vehicleId = request('vehicle_id') ?? '';
+        $itemDispatchId = request('item_dispatch_id') ?? '';
 
         $showWholesalePrice = Party::select('is_wholesale_customer')
             ->find(request('party_id'))
             ?->is_wholesale_customer ?? false;
 
         if($vehicleId) {
-            $itemDispatchDetail = ItemDispatch::where('vehicle_id', $vehicleId)->orderBy('id', 'desc')->first();
+            $itemDispatchDetail = ItemDispatch::where('id', $itemDispatchId)->first();
             if(!$itemDispatchDetail) {
                 return response()->json([]);
             }
@@ -869,7 +872,7 @@ class ItemController extends Controller
         }
 
         if($stockAvailable > 0) {
-            $query->where('current_stock', 1);
+            $query->where('current_stock', '>', 0);
         }
 
         // Get total for pagination
@@ -905,7 +908,7 @@ class ItemController extends Controller
         $partyId = request('party_id');
         $vehicleId = request('vehicle_id') ?? '';
         $page = request('page', 1); // Get the page from the request, default to 1
-
+        $itemDispatchId = '';
         $showWholesalePrice = Party::select('is_wholesale_customer')
                                     ->find(request('party_id'))
                                     ?->is_wholesale_customer ?? false;
@@ -915,6 +918,7 @@ class ItemController extends Controller
                 return response()->json([]);
             }
 
+            $itemDispatchId = $itemDispatchDetail->id;
             $itemDispatchTransaction = $itemDispatchDetail->ItemDispatchTransaction;
             
             if($itemDispatchTransaction) {
@@ -925,33 +929,33 @@ class ItemController extends Controller
         }
         
         $itemMaster = Item::with([
-                            'tax',
-                            'brand',
-                            'itemGeneralQuantities' => function ($query) use ($warehouseId) {
-                                $query->where('warehouse_id', $warehouseId);
-                            }
-                        ])
-                        ->where(function ($query) use ($search) {
-                            $query->where('name', 'LIKE', "%{$search}%")
-                                  ->orWhere('item_code', 'LIKE', "%{$search}%");
-                        })
-                        ->when($categoryId, function ($query) use ($categoryId) {
-                            return $query->where('item_category_id', $categoryId);
-                        })
-                        ->when($brandId, function ($query) use ($brandId) {
-                            return $query->where('brand_id', $brandId);
-                        })
-                        ->when($itemArr, function ($query) use ($itemArr) {
-                            if(!empty($itemArr)) {
-                                return $query->whereIn('id', $itemArr);
-                            }
-                        })
-                        ->paginate(15, ['*'], 'page', $page); // Use pagination for infinite scroll
+                'tax',
+                'brand',
+                'itemGeneralQuantities' => function ($query) use ($warehouseId) {
+                    $query->where('warehouse_id', $warehouseId);
+                }
+            ])
+            ->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('item_code', 'LIKE', "%{$search}%");
+            })
+            ->when($categoryId, function ($query) use ($categoryId) {
+                return $query->where('item_category_id', $categoryId);
+            })
+            ->when($brandId, function ($query) use ($brandId) {
+                return $query->where('brand_id', $brandId);
+            })
+            ->when($itemArr, function ($query) use ($itemArr) {
+                if(!empty($itemArr)) {
+                    return $query->whereIn('id', $itemArr);
+                }
+            })
+            ->paginate(15, ['*'], 'page', $page); // Use pagination for infinite scroll
 
-        $response = $this->returnRequiredFormatData($itemMaster, $showWholesalePrice, $partyId);
+        $response = $this->returnRequiredFormatData($itemMaster, $showWholesalePrice, $itemDispatchId);
         return response()->json($response);
     }
-    function returnRequiredFormatData($itemMaster, $showWholesalePrice = false){
+    function returnRequiredFormatData($itemMaster, $showWholesalePrice = false, $itemDispatchId = ''){
 
         $isPermiteToViewPurchasePrice = (bool) auth()->user()->can('general.allow.to.view.item.purchase.price');
 
@@ -959,18 +963,18 @@ class ItemController extends Controller
 
         $partyId = request('party_id') ?? null;
 
-        $warehouseName = $warehouseId ? CacheService::get('warehouse')->where('id', $warehouseId)->first()?->name ?? '' : '';
+        $warehouseName = $warehouseId ? Warehouse::where('id', $warehouseId)->first()?->name ?? '' : '';
 
         // Cache the Tax list
-        $taxList = CacheService::get('tax');
+        // $taxList = CacheService::get('tax');
+        $taxList = Tax::get();
 
         // Cache the Unit list
-        $unitList = CacheService::get('unit');
+        // $unitList = CacheService::get('unit');
+        $unitList = Unit::get();
 
         $itemMaster->load('itemGeneralQuantities.warehouse');
-
-        return $itemMaster->map(function ($item) use($taxList, $unitList, $warehouseId, $partyId, $showWholesalePrice, $isPermiteToViewPurchasePrice, $warehouseName) {
-
+        return $itemMaster->map(function ($item) use($taxList, $unitList, $warehouseId, $partyId, $showWholesalePrice, $isPermiteToViewPurchasePrice, $warehouseName, $itemDispatchId) {
             if ($warehouseId) {
                 $warehouseStockRecord = $item->itemGeneralQuantities->firstWhere('warehouse_id', $warehouseId);
                 $warehouseStock = $warehouseStockRecord ? $warehouseStockRecord->quantity : 0;
@@ -980,11 +984,19 @@ class ItemController extends Controller
                 $warehouseStock = $item->itemGeneralQuantities->sum('quantity');
             }
 
-
             /**
              * request_from is used in stock adjustment form
              */
-            $isRquiredToShowStockInUnit = request('request_from') == 'stock_adjustment' ? true : false;
+            $stockInUnit = 0;
+            if(request('request_from') == 'stock_adjustment' || request('request_from') == 'item_dispatch') {
+                $stockInUnit = $this->itemService->getQuantityInUnit($warehouseStock, $item->id);
+            }
+
+             if($itemDispatchId != '') {
+                $itemDispatchTransaction = ItemDispatchTransaction::where(['item_dispatch_id' => $itemDispatchId, 'item_id' => $item->id])->first();
+                $stockInUnit = $itemDispatchTransaction->remaining_quantity ?? 0;
+                $warehouseStock = $itemDispatchTransaction->remaining_quantity ?? 0;
+            }
 
             if($partyId) {
                 $customerItemDetail = $item->customerItemFor($partyId)->first();
@@ -1019,7 +1031,7 @@ class ItemController extends Controller
                     'item_location'             => $item->item_location,
                     //'current_stock'             => $item->current_stock,
                     'current_stock'             => $warehouseStock,
-                    'stock_in_unit'             => ($isRquiredToShowStockInUnit) ? $this->itemService->getQuantityInUnit($warehouseStock, $item->id) : 0,
+                    'stock_in_unit'             => $stockInUnit,
                     'image_path'                => $item->image_path??'no',
                     'mrp'                       => $item->mrp,
                     'quantity'                  => 1,
@@ -1056,7 +1068,7 @@ class ItemController extends Controller
                     $itemsArray['sale_price_with_tax'] = ($item->is_sale_price_with_tax == 1) ? $item->sale_price : calculatePrice($item->sale_price, $item->tax->rate, false);
 
                     //Show Discount Allowed in company then only show sale_price_discount else 0
-                    $itemsArray['sale_price_discount'] = (app('company')['show_discount']) ? $item->sale_price_discount : 0;
+                    $itemsArray['sale_price_discount'] = (app(abstract: \App\Models\Company::class)['show_discount']) ? $item->sale_price_discount : 0;
                     $itemsArray['sale_price_discount_type'] = $item->sale_price_discount_type;
                 }
 

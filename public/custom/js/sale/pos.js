@@ -28,6 +28,8 @@
 
     var vehicleId = $("#vehicle_id");
 
+    var itemDispatchId = $("#item_dispatch_id");
+
     /**
      * Language
      * */
@@ -878,6 +880,7 @@
             warehouse_id: currentWarehouse.val(),
             party_id: partyId.val(),
             vehicle_id: vehicleId.val(),
+            item_dispatch_id: itemDispatchId.val(),
             module: 'sale',
             onSelect: function(item) {
                 addRow(item); // Your existing addRow logic
@@ -1148,16 +1151,15 @@
         calulateBalance();
 
         $('#payments-table tr#'+id).remove();
-
     }
 
     function handleVehcileDispatchResponse(response, id) {
         if(Object.keys(response).length > 0) {
             $('#item_dispatch').html('Item Dispatch ' + response.transaction_id);
+            $('#item_dispatch_id').val(response.id);
         } else {
             $('#item_dispatch').html('No Item Dispatch Found');
         }
-        
     }
 
     /**

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\ItemDispatchTransaction;
 use App\Traits\FormatsDateInputs;
 use App\Traits\FormatTime;
+use App\Traits\FormatNumber;
 use App\Models\User;
 use App\Models\Vehicle;
 
@@ -20,6 +21,8 @@ class ItemDispatch extends Model
     use FormatsDateInputs;
 
     use FormatTime;
+
+    use FormatNumber;
 
     /**
      * The attributes that are mass assignable.
@@ -37,6 +40,9 @@ class ItemDispatch extends Model
         'vehicle_id',
         'salesman_id',
         'driver_id',
+        'total_quantity',
+        'total_sold_quantity',
+        'total_remaining_quantity',
         'note',
     ];
 
@@ -95,6 +101,36 @@ class ItemDispatch extends Model
     public function driver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'driver_id');
+    }
+
+    /**
+     * This method calling the Trait FormatQuantity
+     * @return null or string
+     * Use it as formatted_total_quantity
+     * */
+    public function getFormattedTotalQuantityAttribute()
+    {
+        return $this->formatQuantity($this->total_quantity); // Call the trait method
+    }
+
+    /**
+     * This method calling the Trait FormatQuantity
+     * @return null or string
+     * Use it as formatted_total_sold_quantity
+     * */
+    public function getFormattedTotalSoldQuantityAttribute()
+    {
+        return $this->formatQuantity($this->total_sold_quantity); // Call the trait method
+    }
+
+    /**
+     * This method calling the Trait FormatQuantity
+     * @return null or string
+     * Use it as formatted_total_remaining_quantity
+     * */
+    public function getFormattedTotalRemainingQuantityAttribute()
+    {
+        return $this->formatQuantity($this->total_remaining_quantity); // Call the trait method
     }
 
     /**

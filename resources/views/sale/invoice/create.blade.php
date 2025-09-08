@@ -1,5 +1,8 @@
 @extends('layouts.app')
 @section('title', __('sale.invoice'))
+@php
+    $itemDispatchPermission = config('constants.item_dispatch_permission');
+@endphp
 
         @section('content')
         <!--start page wrapper -->
@@ -71,6 +74,17 @@
                                                 </div>
                                             </div>
                                             @endif
+                                            
+                                            @can('sale.invoice.item.dispatch')
+                                                <div class="col-md-4 mb-3">
+                                                    <x-label for="sale_price" name="{{ __('vehicle.vehicle') }}" />
+                                                    <x-dropdown-vehicle selected="" dropdownName="vehicle_id" />
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <input type="hidden" name="item_dispatch_id" id="item_dispatch_id">
+                                                    <h4 id="item_dispatch"></h4>
+                                                </div>
+                                            @endcan
 
                                             @if(app('company')['tax_type'] == 'gst')
                                             <div class="col-md-4">
@@ -260,4 +274,13 @@
 <script src="{{ versionedAsset('custom/js/modals/party/party.js') }}"></script>
 <script src="{{ versionedAsset('custom/js/modals/item/item.js') }}"></script>
 <script src="{{ versionedAsset('custom/js/modals/sale/order/load-sold-items.js') }}"></script>
+
+<script>
+    @if(in_array(auth()->user()->role_id, $itemDispatchPermission)) 
+        var url = baseURL + '/item-dispatch/vehicle/';
+        ajaxGetRequest(url , $('#vehicle_id option:selected').val(), 'vehicle-item-dispatch');
+    
+        $('#vehicle_id').attr('disabled', 'disabled');
+    @endif
+</script>
 @endsection

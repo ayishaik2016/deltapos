@@ -258,7 +258,6 @@ class ItemDispatchController extends Controller
      * */
     public function store(ItemDispatchRequest $request) : JsonResponse  {
         try {
-
             DB::beginTransaction();
             // Get the validated data from the expenseRequest
             $validatedData = $request->validated();
@@ -379,6 +378,15 @@ class ItemDispatchController extends Controller
                     })
                     ->addColumn('transaction_code', function ($row) {
                         return $row->transaction_code;
+                    })
+                    ->addColumn('total_quantity', function ($row) {
+                        return $row->formatted_total_quantity;
+                    })
+                    ->addColumn('total_sold_quantity', function ($row) {
+                        return $row->formatted_total_sold_quantity;
+                    })
+                    ->addColumn('total_remaining_quantity', function ($row) {
+                        return $row->formatted_total_remaining_quantity;
                     })
                     ->addColumn('action', function($row){
                             $id = $row->id;
@@ -507,8 +515,6 @@ class ItemDispatchController extends Controller
             ],409);
         }
     }
-
-    
 
     /**
      * vehicle
