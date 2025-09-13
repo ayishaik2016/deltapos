@@ -38,7 +38,7 @@ return [
     'adjustment'                => 'Adjustment',
     'adjustment_type'           => 'Adjustment Type',
     'item_dispatch'             => 'Dispatch',
-    'item_dispatch_list'        => 'Dispatch List',
+    'item_dispatch_list'        => 'Dispatch Form List',
     'new_form'                  => 'New Dispatch',
     'transaction_id'            => 'Transaction Id',
     'item_dispatch_details'     => 'Dispatch',
