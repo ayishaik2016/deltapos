@@ -55,6 +55,6 @@ if (!function_exists('versionedAsset')) {
      */
     function versionedAsset($link)
     {
-        return global_asset($link).'?v='.getAppVersion(); // Default version if not set in .env
+        return global_asset('public/' . $link).'?v='.getAppVersion(); // Default version if not set in .env
     }
 }

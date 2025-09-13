@@ -13,7 +13,7 @@
 
                         <div class="card shadow-none bg-transparent shadow-none rounded-0 mb-0">
 							<div class="card-body">
-                                 <img src="assets/images/login-images/login-cover.svg" class="img-fluid " width="650" alt=""/>
+                                 <img src="{{ versionedAsset('assets/images/login-images/login-cover.svg') }}" class="img-fluid " width="650" alt=""/>
 							</div>
 						</div>
 
@@ -132,8 +132,8 @@
 
 @section('js')
 <!-- Login page -->
-<script src="custom/js/login.js"></script>
+<script src="{{ versionedAsset('custom/js/login.js') }}"></script>
 @if(config('demo.enabled'))
-<script src="custom/js/demo-login.js"></script>
+<script src="{{ versionedAsset('custom/js/demo-login.js') }}"></script>
 @endif
 @endsection
