@@ -29,6 +29,8 @@
     var vehicleId = $("#vehicle_id");
 
     var itemDispatchId = $("#item_dispatch_id");
+    
+    const itemCategory = $('#item_search').find('#item_category_id');
 
     /**
      * Language
@@ -881,6 +883,7 @@
             party_id: partyId.val(),
             vehicle_id: vehicleId.val(),
             item_dispatch_id: itemDispatchId.val(),
+            category_id: itemCategory.val(),
             module: 'sale',
             onSelect: function(item) {
                 addRow(item); // Your existing addRow logic

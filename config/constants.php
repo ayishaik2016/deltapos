@@ -10,4 +10,8 @@ return [
 
     'item_dispatch_permission' => [3, 4],
 
+    'purchase_category' => [2],
+
+    'sale_category' => [3],
+    
 ];

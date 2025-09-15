@@ -37,11 +37,23 @@ class DropdownItemCategory extends Component
     public $showSelectOptionAll;
 
     /**
+     * Category list is find corresponding
+     *
+     * @var Boolean
+     */
+    public $selectedCategories;
+
+    /**
      * Create a new component instance.
      */
-    public function __construct($selected = null, $isMultiple = false, $showSelectOptionAll = false)
+    public function __construct($selected = null, $isMultiple = false, $showSelectOptionAll = false, $selectedCategories = '')
     {
-        $this->categories = ItemCategory::select('id','name')->get();
+        $itemCategories = ItemCategory::select('id','name');
+        if($selectedCategories != '') {
+            $itemCategories = $itemCategories->whereIn('id', config('constants.' . $selectedCategories));
+        }
+
+        $this->categories = $itemCategories->get();
         $this->selected = $selected;
         $this->isMultiple = $isMultiple;
         $this->showSelectOptionAll = $showSelectOptionAll;

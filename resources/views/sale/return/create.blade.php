@@ -84,11 +84,15 @@
                                         <h5 class="mb-0">{{ __('item.items') }}</h5>
                                     </div>
                                     <div class="card-body p-4 row g-3">
-                                            <div class="col-md-3 col-sm-12 col-lg-3">
+                                            <div class="col-md-3 col-sm-12 col-lg-2">
                                                 <x-label for="warehouse_id" name="{{ __('warehouse.warehouse') }}" />
                                                 <x-dropdown-warehouse selected="" dropdownName='warehouse_id' />
                                             </div>
-                                            <div class="col-md-9 col-sm-12 col-lg-7">
+                                            <div class="col-md-3 col-sm-12 col-lg-2">
+                                                <x-label for="warehouse_id" name="{{ __('item.item_category') }}" />
+                                                <x-dropdown-item-category selected="" :isMultiple="false" :showSelectOptionAll="false" selectedCategories="{{ 'sale_category' }}" />
+                                            </div>
+                                            <div class="col-md-6 col-sm-12 col-lg-6">
                                                 <x-label for="search_item" name="{{ __('item.enter_item_name') }}" />
                                                 <div class="input-group">
                                                     <span class="input-group-text" id="basic-addon1"><i class="fadeIn animated bx bx-barcode-reader text-primary"></i></span>

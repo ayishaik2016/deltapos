@@ -833,6 +833,7 @@ class ItemController extends Controller
         $perPage = 10;              // items per page
         $offset = ($page - 1) * $perPage;
         $vehicleId = request('vehicle_id') ?? '';
+        $categoryId = request('category_id') ?? '';
         $itemDispatchId = request('item_dispatch_id') ?? '';
 
         $showWholesalePrice = Party::select('is_wholesale_customer')
@@ -866,6 +867,10 @@ class ItemController extends Controller
                     $brandQuery->where('name', 'LIKE', "%{$search}%");
                 });
         });
+
+        if($categoryId != '') {
+            $query->where('item_category_id', $categoryId);
+        }
 
         if(!empty($itemArr)) {
             $query->whereIn('id', $itemArr);

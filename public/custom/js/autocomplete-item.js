@@ -22,6 +22,7 @@ function initItemAutocomplete(inputSelector, options = {}) {
                 data: {
                     search: request.term,
                     warehouse_id: options.warehouse_id || '',
+                    category_id: options.category_id || '',
                     party_id: options.party_id || '',
                     vehicle_id: options.vehicle_id || '',
                     item_dispatch_id: options.item_dispatch_id || '',

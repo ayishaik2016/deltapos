@@ -63,7 +63,7 @@
             <div class="page-wrapper-1">
                 <div class="container-fluid mt-5">
                     <div class="row">
-                        <div class="col-sm-12 col-md-5 mb-3">
+                        <div class="col-sm-12 col-md-5 mb-3" id="item_search">
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -78,7 +78,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <x-dropdown-item-category selected="" :isMultiple="false" :showSelectOptionAll="true" />
+                                        <x-dropdown-item-category selected="" :isMultiple="false" :showSelectOptionAll="false" selectedCategories="{{ 'sale_category' }}" />
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <x-dropdown-brand selected="" :showSelectOptionAll='true' name="item_brand_id"/>

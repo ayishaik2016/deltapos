@@ -22,6 +22,8 @@
 
     var buttonId = $("#add_row");
 
+    const itemCategory = $('#item_category_id');
+
     /**
      * Language
      * */
@@ -803,6 +805,7 @@
    itemSearchInputBoxId.on('click', function() {
         initItemAutocomplete(itemSearchInputBoxId, {
             warehouse_id: currentWarehouse.val(),
+            category_id: itemCategory.val(),
             module: 'purchase',
             onSelect: function(item) {
                 addRow(item); // Your existing addRow logic

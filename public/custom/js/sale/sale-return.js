@@ -21,6 +21,8 @@
     var searchedItemPrice = 0;
 
     var buttonId = $("#add_row");
+    
+    const itemCategory = $('#item_category_id');
 
     /**
      * Language
@@ -804,6 +806,7 @@
    itemSearchInputBoxId.on('click', function() {
         initItemAutocomplete(itemSearchInputBoxId, {
             warehouse_id: currentWarehouse.val(),
+            category_id: itemCategory.val(),
             party_id: partyId.val(),
             module: 'sale',
             onSelect: function(item) {
