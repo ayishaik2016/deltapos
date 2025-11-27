@@ -333,6 +333,7 @@ class SaleReturnController extends Controller
         $html = $this->print($id, isPdf:true);
 
         $mpdf = new Mpdf([
+                'tempDir' => base_path('storage/mpdf_temp'),
                 'mode' => 'utf-8',
                 'format' => 'A4',
                 'margin_left' => 2,

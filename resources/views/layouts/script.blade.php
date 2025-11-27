@@ -49,6 +49,12 @@
         var allowUserToChangeSalePrice = {{ auth()->check() && auth()->user()->can('general.permission.to.change.sale.price') ? 1 : 0; }};
         var isEnableSecondaryCurrency = {{ auth()->check() && app('company')['is_enable_secondary_currency'] ? 1 : 0; }};
         var isEnableCarrierCharge = {{ auth()->check() && app('company')['is_enable_carrier_charge'] ? 1 : 0; }};
+
+		if ("serviceWorker" in navigator) {
+			navigator.serviceWorker.register("/deltapos/public/service-worker.js")
+				.then(() => console.log("Service Worker registered"))
+				.catch(err => console.error("SW registration failed", err));
+		}
 	</script>
     <!-- Clear Cache -->
     <script src="{{ versionedAsset('custom/js/cache.js') }}"></script>

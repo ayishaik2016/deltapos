@@ -339,16 +339,90 @@
         </div>
     </div>
     <div class="container mt-3 mb-3 hide-print-btn">
-        <button class="btn btn-success print-btn" onclick="window.print()">Print</button>
+        <!-- <button class="btn btn-success print-btn" onclick="window.print()">Print</button> -->
+        <button class="btn btn-success print-btn" onclick="printReceipt(1)">Print</button>
     </div>
-
+                            <div id="receipt-content"></div>
     <!-- Bootstrap JS -->
     <script src="{{ versionedAsset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ versionedAsset('assets/js/jquery.min.js') }}"></script>
     <script type="text/javascript">
-        $(document).ready(function() {
-            window.print();
-        });
+        async function printReceipt(id) {
+            let response = await fetch("http://localhost/deltapos/public/pos/print1/" + id);
+            let data = await response.json();
+            window.location.href = data.rawbt_url;
+        }
+        // $(document).ready(function() {
+            //window.print();
+
+           /* async function printReceiptViaRawBT() {
+                try {
+                    // 1. Fetch full HTML page from your POS print URL
+                    let response = await fetch("http://pos.getappgo.com/pos/print/60", {
+                        credentials: 'include',
+                        headers: { 'Accept': 'text/html' }
+                    });
+
+                    if (!response.ok) {
+                    alert("Could not fetch receipt HTML: " + response.status);
+                    return;
+                    }
+
+                    let fullHtml = await response.text();
+
+                    let receiptHtml = "<html><head><meta charset='UTF-8'></head><body>" 
+                      + fullHtml + 
+                      "</body></html>";
+
+                    // 3. Encode and build RawBT intent URL
+                    let encoded = encodeURIComponent(receiptHtml);
+                    let intentUrl = "intent://print?raw=" + receiptHtml +
+                                    "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+
+                    // 4. Redirect to RawBT
+                    window.location.href = intentUrl;
+
+                    return false;
+
+                    // 2. Parse and extract #receipt-content only
+                    /*let parser = new DOMParser();
+                    let doc = parser.parseFromString(fullHtml, "text/html");
+                    let receiptDiv = doc.querySelector("#receipt-content");
+
+                    if (!receiptDiv) {
+                    alert("Receipt content not found!");
+                    return;
+                    }
+
+                    // 3. Wrap extracted content in a minimal HTML document
+                    let receiptHtml = `
+                    <html>
+                        <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: monospace; font-size: 12px; }
+                            .center { text-align: center; }
+                        </style>
+                        </head>
+                        <body>
+                        ${receiptDiv.outerHTML}
+                        </body>
+                    </html>
+                    `;
+
+                    // 4. Encode and send to RawBT
+                    let encoded = encodeURIComponent(receiptHtml);
+                    let url = "intent://print?raw=" + encoded +
+                            "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+
+                    window.location.href = url;*/
+
+                // } catch (err) {
+                //     console.error("printReceiptViaRawBT error:", err);
+                //     alert("Printing error: " + err.message);
+                // }
+                // }*/
+        // });
     </script>
 </body>
 </html>

@@ -38,6 +38,8 @@ use App\Models\Sale\Quotation;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Currency;
 
+use App\Services\ReceiptPrinter;
+
 use Mpdf\Mpdf;
 
 class SaleController extends Controller
@@ -367,7 +369,6 @@ class SaleController extends Controller
      * @return \Illuminate\View\View
      */
     public function posPrint($id, $isPdf = false) : View {
-
         $sale = Sale::with(['party','user',
                                         'itemTransaction' => [
                                             'item',
@@ -392,6 +393,24 @@ class SaleController extends Controller
 
     }
 
+    public function posPrint1($id) {
+        $order = [
+            "items" => [
+                ["name" => "Pen", "qty" => 2, "price" => 10],
+                ["name" => "Book", "qty" => 1, "price" => 25],
+            ],
+            "total" => 45
+        ];
+
+        $raw = ReceiptPrinter::generate($order);
+
+        $encoded = rawurlencode($raw);
+
+        return response()->json([
+            "rawbt_url" => "intent://print?raw={$encoded}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;"
+        ]);
+    }
+
     /**
      * Print Sale
      *
@@ -399,7 +418,6 @@ class SaleController extends Controller
      * @return \Illuminate\View\View
      */
     public function print($invoiceFormat='format-1', $id, $isPdf = false) : View {
-
         $sale = Sale::with(['party',
                                         'itemTransaction' => [
                                             'item',
@@ -447,6 +465,7 @@ class SaleController extends Controller
         $html = $this->print(invoiceFormat: $invoiceFormat, id:$id, isPdf:true);
 
         $mpdf = new Mpdf([
+                'tempDir' => base_path('storage/mpdf_temp'),
                 'mode' => 'utf-8',
                 'format' => 'A4',
                 'margin_left' => 2,

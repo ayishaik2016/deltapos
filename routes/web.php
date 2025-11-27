@@ -110,6 +110,7 @@ if(config('demo.enabled')){
 
 Route::get('/migrate/db', [AppSettingsController::class, 'migrate'])->name('migrate');
 
+Route::view('/offline', 'offline');
 
 
 Route::get('/noimage', function(){
@@ -1583,6 +1584,9 @@ Route::middleware('auth')->group(function () {
                 ->middleware('can:sale.invoice.create')
                 ->name('pos.create');//View
         Route::get('/print/{id}', [SaleController::class, 'posPrint'])
+                    ->middleware('can:sale.invoice.view')
+                    ->name('sale.invoice.pos.print');
+        Route::get('/print1/{id}', [SaleController::class, 'posPrint1'])
                     ->middleware('can:sale.invoice.view')
                     ->name('sale.invoice.pos.print');
         //Route::post('/store', [SaleController::class, 'store'])->name('sale.invoice.store');//Save operation

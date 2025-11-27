@@ -9,6 +9,13 @@
 	<link href="{{ versionedAsset('assets/plugins/simplebar/css/simplebar.css') }}" rel="stylesheet" />
 	<link href="{{ versionedAsset('assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css') }}" rel="stylesheet" />
 	<link href="{{ versionedAsset('assets/plugins/metismenu/css/metisMenu.min.css') }}" rel="stylesheet" />
+	
+	<!--PWA Extension-->
+	<link rel="manifest" href="{{ asset('manifest.json') }}">
+	<meta name="theme-color" content="#0d6efd">
+	<link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ versionedAsset('custom/libraries/select2-theme/select2-4.1.0-rc.0/dist/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ versionedAsset('custom/libraries/select2-theme/select2-bootstrap-5-theme-1.3.0/dist/select2-bootstrap-5-theme.min.css') }}">
