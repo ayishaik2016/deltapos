@@ -11,9 +11,9 @@
 	<link href="{{ versionedAsset('assets/plugins/metismenu/css/metisMenu.min.css') }}" rel="stylesheet" />
 	
 	<!--PWA Extension-->
-	<link rel="manifest" href="{{ asset('manifest.json') }}">
+	<link rel="manifest" href="{{ versionedAsset('manifest.json') }}">
 	<meta name="theme-color" content="#0d6efd">
-	<link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
+	<link rel="apple-touch-icon" href="{{ versionedAsset('assets/images/icons/icon-192x192.png') }}">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 
     <!-- Select2 -->

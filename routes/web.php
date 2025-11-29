@@ -1586,9 +1586,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/print/{id}', [SaleController::class, 'posPrint'])
                     ->middleware('can:sale.invoice.view')
                     ->name('sale.invoice.pos.print');
-        Route::get('/print1/{id}', [SaleController::class, 'posPrint1'])
-                    ->middleware('can:sale.invoice.view')
-                    ->name('sale.invoice.pos.print');
         //Route::post('/store', [SaleController::class, 'store'])->name('sale.invoice.store');//Save operation
     });
 
